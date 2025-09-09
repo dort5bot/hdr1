@@ -1,0 +1,35 @@
+Nasıl Çalışır?
+
+Bot başlatıldığında hem Telegram komutlarını dinler hem de Gmail’i otomatik olarak kontrol eder.
+
+Yeni Excel varsa:
+
+Excel gruplara ayrılır
+
+Dosyalar oluşturulur (GrupAdı_aygünsaatdakika.xlsx)
+
+Mail gönderilir
+
+Telegram logu admin’e iletilir
+
+Süreli otomatik kontrol: CHECK_INTERVAL (örn. 300 sn = 5 dk) ile sürekli Gmail’e bakar.
+
+Manuel tetikleme: /process komutu ile istediğiniz an çalıştırabilirsiniz.
+
+5️⃣ Deploy Önerisi
+
+Dockerfile ile paketleyip Render veya Heroku’ya yükleyin.
+
+Python ortamında .env dosyası ile API ve mail bilgilerini saklayın.
+
+Docker container 7/24 çalışır; Gmail polling ve Telegram log paralel şekilde işler.
+
+💡 Bu sistem:
+
+Modüler (utils, jobs, handlers)
+
+Hızlı ve kararlı
+
+Hem otomatik hem manuel tetikleme destekli
+
+Gruplar ve mailler groups.json üzerinden kolayca yönetilebilir
