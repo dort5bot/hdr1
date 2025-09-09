@@ -3,6 +3,7 @@ from aiogram import Bot, Dispatcher, types
 from aiogram.filters import Command
 import os
 
+from jobs.gmail_job import polling_loop
 from utils.excel_utils import process_excel
 from utils.mail_utils import send_excel_email
 from utils.gmail_utils import fetch_latest_excel
@@ -16,7 +17,7 @@ dp = Dispatcher()
 async def start_handler(message: types.Message):
     await message.answer("Merhaba! Excel Mail Bot aktif. /process ile son gelen dosya işlenebilir.")
 
-# /process komutu
+# /process komutu (manuel tetikleme)
 @dp.message(Command("process"))
 async def process_handler(message: types.Message):
     await message.answer("Gmail kontrol ediliyor...")
@@ -38,10 +39,14 @@ async def process_handler(message: types.Message):
 
     await message.answer("Tüm işlem tamamlandı ✅")
 
-# Bot başlat
+# Bot başlat ve polling job ile çalıştır
 async def main():
-    print("Bot çalışıyor...")
-    await dp.start_polling(bot)
+    print("Bot ve Gmail otomatik polling başlatılıyor...")
+    # Telegram bot polling ve Gmail job paralel çalışacak
+    await asyncio.gather(
+        dp.start_polling(bot),
+        polling_loop()
+    )
 
 if __name__ == "__main__":
     asyncio.run(main())
