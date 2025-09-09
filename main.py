@@ -1,12 +1,11 @@
 import asyncio
 from aiogram import Bot, Dispatcher, types
 from aiogram.filters import Command
-import os
-
-from jobs.gmail_job import polling_loop
+from jobs.gmail_job import main_job
+from utils.gmail_utils import fetch_all_new_excels
 from utils.excel_utils import process_excel
 from utils.mail_utils import send_excel_email
-from utils.gmail_utils import fetch_latest_excel
+import os
 
 BOT_TOKEN = os.environ.get("TELEGRAM_TOKEN")
 bot = Bot(token=BOT_TOKEN)
@@ -21,31 +20,29 @@ async def start_handler(message: types.Message):
 @dp.message(Command("process"))
 async def process_handler(message: types.Message):
     await message.answer("Gmail kontrol ediliyor...")
-    excel_file = fetch_latest_excel()
-    if not excel_file:
-        await message.answer("Henüz gelen Excel dosyası yok.")
+    excel_files = fetch_all_new_excels()
+
+    if not excel_files:
+        await message.answer("Henüz yeni Excel dosyası yok.")
         return
 
-    await message.answer(f"Dosya bulundu: {os.path.basename(excel_file)}. İşleme başlıyor...")
-    result = process_excel(excel_file)
-
-    if not result:
-        await message.answer("Hiçbir grup için satır bulunamadı.")
-        return
-
-    for group, info in result.items():
-        send_excel_email(info["email"], info["file"])
-        await message.answer(f"{group.capitalize()} grubuna {info['rows']} satır gönderildi: {info['email']}")
-
-    await message.answer("Tüm işlem tamamlandı ✅")
+    for excel_file in excel_files:
+        await message.answer(f"Dosya bulundu: {os.path.basename(excel_file)}. İşleme başlıyor...")
+        result = process_excel(excel_file)
+        if not result:
+            await message.answer(f"{os.path.basename(excel_file)} için hiçbir grup satır bulunamadı.")
+        else:
+            for group, info in result.items():
+                send_excel_email(info["email"], info["file"])
+                await message.answer(f"{group.capitalize()} grubuna {info['rows']} satır gönderildi: {info['email']}")
+            await message.answer(f"{os.path.basename(excel_file)} için tüm işlemler tamamlandı ✅")
 
 # Bot başlat ve polling job ile çalıştır
 async def main():
-    print("Bot ve Gmail otomatik polling başlatılıyor...")
-    # Telegram bot polling ve Gmail job paralel çalışacak
+    print("Bot ve Gmail otomatik polling + günlük temp temizleme başlatılıyor...")
     await asyncio.gather(
         dp.start_polling(bot),
-        polling_loop()
+        main_job()
     )
 
 if __name__ == "__main__":
