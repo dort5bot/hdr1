@@ -1,0 +1,24 @@
+
+utils/excel_utils.py
+
+from utils.excel_utils import process_excel
+
+result = process_excel("data/temp/gelen_excel.xlsx")
+
+for group, info in result.items():
+    print(f"{group} grubu için {info['rows']} satır bulundu.")
+    print(f"Dosya: {info['file']} → Gönderilecek: {info['email']}")
+
+
+
+utils/mail_utils.py
+
+from utils.excel_utils import process_excel
+from utils.mail_utils import send_excel_email
+
+# Excel işleme
+result = process_excel("data/temp/gelen_excel.xlsx")
+
+# Her grup için mail gönder
+for group, info in result.items():
+    send_excel_email(info['email'], info['file'])
