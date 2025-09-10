@@ -1,35 +1,24 @@
-Nasıl Çalışır?
+email handlers dosyası,
+* mail ve Excel işlemleriyle ilgili tüm komutları merkezi bir yerde toplar ve modüler yapıyı tamamlar
 
-Bot başlatıldığında hem Telegram komutlarını dinler hem de Gmail’i otomatik olarak kontrol eder.
+Komutların Açıklamaları:
+/checkmail - Manuel olarak mail kontrolü yapar
+/process - Sadece Excel işleme yapar (mail kontrolü yapmaz)
+/cleanup - Temp klasörünü manuel temizler
+/stats - Bot istatistiklerini gösterir
 
-Yeni Excel varsa:
+#===Kullanım Örnekleri:============
+/checkmail → "Mail kontrol ediliyor..." → "3 yeni Excel dosyası bulundu."
 
-Excel gruplara ayrılır
+/process → "Excel dosyaları işleniyor..." → "Mail gönderildi: 1. ege 2. kemal"
 
-Dosyalar oluşturulur (GrupAdı_aygünsaatdakika.xlsx)
+/cleanup → "Temp klasörü temizlendi."
 
-Mail gönderilir
+/stats → 
+"📊 Bot İstatistikleri:
 
-Telegram logu admin’e iletilir
-
-Süreli otomatik kontrol: CHECK_INTERVAL (örn. 300 sn = 5 dk) ile sürekli Gmail’e bakar.
-
-Manuel tetikleme: /process komutu ile istediğiniz an çalıştırabilirsiniz.
-
-5️⃣ Deploy Önerisi
-
-Dockerfile ile paketleyip Render veya Heroku’ya yükleyin.
-
-Python ortamında .env dosyası ile API ve mail bilgilerini saklayın.
-
-Docker container 7/24 çalışır; Gmail polling ve Telegram log paralel şekilde işler.
-
-💡 Bu sistem:
-
-Modüler (utils, jobs, handlers)
-
-Hızlı ve kararlı
-
-Hem otomatik hem manuel tetikleme destekli
-
-Gruplar ve mailler groups.json üzerinden kolayca yönetilebilir
+• Kaynak Mailler: 2
+• Gruplar: 3
+• İşlenmiş Mail ID'leri: 15
+• Temp Dosyaları: 5
+• Admin ID'leri: 2"
