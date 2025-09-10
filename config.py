@@ -4,7 +4,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # Environment variables
-BOT_TOKEN = os.getenv("BOT_TOKEN")
+TELEGRAM_BOT = os.getenv("TELEGRAM_BOT")
 MAIL_K1 = os.getenv("MAIL_K1")
 MAIL_K2 = os.getenv("MAIL_K2")
 MAIL_BEN = os.getenv("MAIL_BEN")
