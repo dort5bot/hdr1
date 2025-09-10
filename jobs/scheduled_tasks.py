@@ -1,14 +1,15 @@
+# scheduled_tasks.py
 import asyncio
 import aioschedule
 import logging
 from config import ADMIN_IDS
 from utils import email_utils, file_utils
-from main import bot
 
 logger = logging.getLogger(__name__)
 
 async def scheduled_email_check():
     """Check for new emails periodically"""
+    from main import bot  # ← Burada import yapılıyor, fonksiyon çağrıldığında çalışır
     new_files = await email_utils.check_email()
     if new_files:
         for admin_id in ADMIN_IDS:
