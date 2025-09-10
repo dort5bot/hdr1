@@ -1,49 +1,40 @@
 import asyncio
-from aiogram import Bot, Dispatcher, types
-from aiogram.filters import Command
-from jobs.gmail_job import main_job
-from utils.gmail_utils import fetch_all_new_excels
-from utils.excel_utils import process_excel
-from utils.mail_utils import send_excel_email
-import os
+import logging
+from aiogram import Bot, Dispatcher
+from handlers.commands import router as commands_router
+from jobs.scheduled_tasks import scheduler
+from config import BOT_TOKEN, ADMIN_IDS, TEMP_DIR
 
-BOT_TOKEN = os.environ.get("TELEGRAM_TOKEN")
+# Logging configuration
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+# Initialize bot and dispatcher
 bot = Bot(token=BOT_TOKEN)
 dp = Dispatcher()
 
-# /start komutu
-@dp.message(Command("start"))
-async def start_handler(message: types.Message):
-    await message.answer("Merhaba! Excel Mail Bot aktif. /process ile son gelen dosya işlenebilir.")
+# Include routers
+dp.include_router(commands_router)
 
-# /process komutu (manuel tetikleme)
-@dp.message(Command("process"))
-async def process_handler(message: types.Message):
-    await message.answer("Gmail kontrol ediliyor...")
-    excel_files = fetch_all_new_excels()
+async def on_startup():
+    """Run on bot startup"""
+    # Create temp directory if it doesn't exist
+    import os
+    os.makedirs(TEMP_DIR, exist_ok=True)
+    
+    # Start scheduler
+    asyncio.create_task(scheduler())
+    
+    # Send startup message to admins
+    for admin_id in ADMIN_IDS:
+        await bot.send_message(admin_id, "HIDIR Botu başlatıldı.")
 
-    if not excel_files:
-        await message.answer("Henüz yeni Excel dosyası yok.")
-        return
-
-    for excel_file in excel_files:
-        await message.answer(f"Dosya bulundu: {os.path.basename(excel_file)}. İşleme başlıyor...")
-        result = process_excel(excel_file)
-        if not result:
-            await message.answer(f"{os.path.basename(excel_file)} için hiçbir grup satır bulunamadı.")
-        else:
-            for group, info in result.items():
-                send_excel_email(info["email"], info["file"])
-                await message.answer(f"{group.capitalize()} grubuna {info['rows']} satır gönderildi: {info['email']}")
-            await message.answer(f"{os.path.basename(excel_file)} için tüm işlemler tamamlandı ✅")
-
-# Bot başlat ve polling job ile çalıştır
 async def main():
-    print("Bot ve Gmail otomatik polling + günlük temp temizleme başlatılıyor...")
-    await asyncio.gather(
-        dp.start_polling(bot),
-        main_job()
-    )
+    # Set up startup function
+    dp.startup.register(on_startup)
+    
+    # Start polling
+    await dp.start_polling(bot)
 
 if __name__ == "__main__":
     asyncio.run(main())
