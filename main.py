@@ -2,6 +2,7 @@ import asyncio
 import logging
 from aiogram import Bot, Dispatcher
 from handlers.commands import router as commands_router
+from handlers.email_handlers import router as email_router
 from jobs.scheduled_tasks import scheduler
 from config import BOT_TOKEN, ADMIN_IDS, TEMP_DIR
 
@@ -13,8 +14,9 @@ logger = logging.getLogger(__name__)
 bot = Bot(token=BOT_TOKEN)
 dp = Dispatcher()
 
-# Include routers
+# Include all routers
 dp.include_router(commands_router)
+dp.include_router(email_router)
 
 async def on_startup():
     """Run on bot startup"""
