@@ -23,6 +23,10 @@ async def cmd_start(message: Message):
         "/gr - Grupları listeler\n"
         "/grek - Yeni grup ekler\n"
         "/grsil - Grup siler\n"
+        "/checkmail - Manuel olarak mail kontrolü yapar\n"
+        "/process - Sadece Excel işleme yapar (mail kontrolü yapmaz)\n"
+        "/cleanup - Temp klasörünü manuel temizler\n"
+        "/stats - Bot istatistiklerini gösterir\n"
         "/proc - Excel dosyalarını işler"
     )
 
