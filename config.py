@@ -29,20 +29,20 @@ GROUPS_FILE = DATA_DIR / "groups.json"
 
 # Varsayılan gruplar (verilen listeniz)
 DEFAULT_GROUPS = [
-    {"no": "GRUP_1", "ad": "ANTALYA", "iller": "Afyon,Aksaray,Ankara,Antalya,Burdur,Çankırı,Isparta,Karaman,Kayseri,Kırıkkale,Kırşehir,Konya,Uşak", "email": "anadolulistehdr@gmail.com"},
-    {"no": "GRUP_2", "ad": "MERSİN", "iller": "Adana,Adıyaman,Batman,Bingöl,Bitlis,Diyarbakır,Elazığ,Gaziantep,Hakkâri,Hatay,Kahramanmaraş,Kilis,Malatya,Mardin,Mersin,Muş,Osmaniye,Siirt,Şanlıurfa,Şırnak", "email": "dersdep@gmail.com"},
-    {"no": "GRUP_3", "ad": "İZMİR", "iller": "Afyon,Aydın,Burdur,Isparta,İzmir,ÇANAKKALE,Manisa,Muğla,Uşak", "email": "anadolulistehdr@gmail.com"},
-    {"no": "GRUP_4", "ad": "BURSA", "iller": "Balıkesir,Bursa,Çanakkale,Düzce,Kocaeli,Sakarya,Tekirdağ,Yalova", "email": "anadolulistehdr@gmail.com"},
-    {"no": "GRUP_5", "ad": "BALIKESİR", "iller": "BALIKESİR,ÇANAKKALE", "email": "anadolulistehdr@gmail.com"},
-    {"no": "GRUP_6", "ad": "KARADENİZ", "iller": "Artvin,Bayburt,Çankırı,Erzincan,Erzurum,Giresun,Gümüşhane,Ordu,Rize,Samsun,Sinop,Sivas,Tokat,Trabzon", "email": "dersdep@gmail.com"},
-    {"no": "GRUP_7", "ad": "ERZİNCAN", "iller": "Bingöl,Erzincan,Erzurum,Giresun,Gümüşhane,Kars,Ordu,Sivas,Şırnak,Tokat,Tunceli", "email": "dersdep@gmail.com"},
-    {"no": "GRUP_8", "ad": "ESKİŞEHİR", "iller": "Afyon,Ankara,Bilecik,Eskişehir,Uşak", "email": "GRUP_8@gmail.com"},
-    {"no": "GRUP_9", "ad": "KÜTAHYA", "iller": "Afyon,Ankara,Bilecik,Bozüyük,Bursa,Eskişehir,Kütahya,Uşak", "email": "GRUP_9@gmail.com"},
-    {"no": "GRUP_10", "ad": "ÇORUM", "iller": "Amasya,Ankara,Çankırı,Çorum,Kastamonu,Kayseri,Kırıkkale,Kırşehir,Samsun,Tokat,Yozgat", "email": "GRUP_10@gmail.com"},
-    {"no": "GRUP_11", "ad": "DENİZLİ", "iller": "Afyon,Aydın,Burdur,Denizli,Isparta,İzmir,Manisa,Muğla,Uşak", "email": "GRUP_11@gmail.com"},
-    {"no": "GRUP_12", "ad": "AKHİSAR", "iller": "MANİSA", "email": "GRUP_12@gmail.com"},
-    {"no": "GRUP_13", "ad": "DÜZCE", "iller": "Bolu,Düzce,Edirne,İstanbul,Karabük,Kırklareli,Kocaeli,Sakarya,Tekirdağ,Yalova,Zonguldak", "email": "GRUP_13@gmail.com"},
-    {"no": "GRUP_14", "ad": "TUNCAY", "iller": "Aksaray,Ankara,Kahramanmaraş,Kırıkkale,Kırşehir", "email": "GRUP_14@gmail.com"}
+     {"no": "GRUP_1", "name": "ANTALYA", "iller": "Afyon,Aksaray,Ankara,Antalya,Burdur,Çankırı,Isparta,Karaman,Kayseri,Kırıkkale,Kırşehir,Konya,Uşak", "email": "anadolulistehdr@gmail.com"},
+    {"no": "GRUP_2", "name": "MERSİN", "iller": "Adana,Adıyaman,Batman,Bingöl,Bitlis,Diyarbakır,Elazığ,Gaziantep,Hakkâri,Hatay,Kahramanmaraş,Kilis,Malatya,Mardin,Mersin,Muş,Osmaniye,Siirt,Şanlıurfa,Şırnak", "email": "dersdep@gmail.com"},
+    {"no": "GRUP_3", "name": "İZMİR", "iller": "Afyon,Aydın,Burdur,Isparta,İzmir,ÇANAKKALE,Manisa,Muğla,Uşak", "email": "anadolulistehdr@gmail.com"},
+    {"no": "GRUP_4", "name": "BURSA", "iller": "Balıkesir,Bursa,Çanakkale,Düzce,Kocaeli,Sakarya,Tekirdağ,Yalova", "email": "anadolulistehdr@gmail.com"},
+    {"no": "GRUP_5", "name": "BALIKESİR", "iller": "BALIKESİR,ÇANAKKALE", "email": "anadolulistehdr@gmail.com"},
+    {"no": "GRUP_6", "name": "KARADENİZ", "iller": "Artvin,Bayburt,Çankırı,Erzincan,Erzurum,Giresun,Gümüşhane,Ordu,Rize,Samsun,Sinop,Sivas,Tokat,Trabzon", "email": "dersdep@gmail.com"},
+    {"no": "GRUP_7", "name": "ERZİNCAN", "iller": "Bingöl,Erzincan,Erzurum,Giresun,Gümüşhane,Kars,Ordu,Sivas,Şırnak,Tokat,Tunceli", "email": "dersdep@gmail.com"},
+    {"no": "GRUP_8", "name": "ESKİŞEHİR", "iller": "Afyon,Ankara,Bilecik,Eskişehir,Uşak", "email": "GRUP_8@gmail.com"},
+    {"no": "GRUP_9", "name": "KÜTAHYA", "iller": "Afyon,Ankara,Bilecik,Bozüyük,Bursa,Eskişehir,Kütahya,Uşak", "email": "GRUP_9@gmail.com"},
+    {"no": "GRUP_10", "name": "ÇORUM", "iller": "Amasya,Ankara,Çankırı,Çorum,Kastamonu,Kayseri,Kırıkkale,Kırşehir,Samsun,Tokat,Yozgat", "email": "GRUP_10@gmail.com"},
+    {"no": "GRUP_11", "name": "DENİZLİ", "iller": "Afyon,Aydın,Burdur,Denizli,Isparta,İzmir,Manisa,Muğla,Uşak", "email": "GRUP_11@gmail.com"},
+    {"no": "GRUP_12", "name": "AKHİSAR", "iller": "MANİSA", "email": "GRUP_12@gmail.com"},
+    {"no": "GRUP_13", "name": "DÜZCE", "iller": "Bolu,Düzce,Edirne,İstanbul,Karabük,Kırklareli,Kocaeli,Sakarya,Tekirdağ,Yalova,Zonguldak", "email": "GRUP_13@gmail.com"},
+    {"no": "GRUP_14", "name": "TUNCAY", "iller": "Aksaray,Ankara,Kahramanmaraş,Kırıkkale,Kırşehir", "email": "GRUP_14@gmail.com"}
 ]
 
 # Grupları yükle
@@ -52,8 +52,22 @@ def load_groups():
             with open(GROUPS_FILE, 'r', encoding='utf-8') as f:
                 return json.load(f)
         except (json.JSONDecodeError, FileNotFoundError):
-            return DEFAULT_GROUPS
+            # Eski yapıyı yeni yapıya dönüştür
+            return convert_old_groups(DEFAULT_GROUPS)
     return DEFAULT_GROUPS
+
+def convert_old_groups(old_groups):
+    """Eski grup yapısını yeniye dönüştür"""
+    new_groups = []
+    for group in old_groups:
+        if "ad" in group and "name" not in group:
+            # Eski yapıyı yeniye dönüştür
+            new_group = group.copy()
+            new_group["name"] = new_group.pop("ad")
+            new_groups.append(new_group)
+        else:
+            new_groups.append(group)
+    return new_groups
 
 def save_groups(groups_data):
     with open(GROUPS_FILE, 'w', encoding='utf-8') as f:
