@@ -1,4 +1,3 @@
-#utils/excel_processor.py
 import pandas as pd
 import datetime
 import os
@@ -24,71 +23,104 @@ async def process_excel_files() -> dict:
             # Find the city column (case insensitive)
             city_column = None
             for col in df.columns:
-                if any(city.lower() in col.lower() for city in TURKISH_CITIES):
+                col_lower = col.lower()
+                if any(city.lower() in col_lower for city in TURKISH_CITIES):
+                    city_column = col
+                    break
+                elif any(keyword in col_lower for keyword in ['şehir', 'city', 'il', 'location', 'city_name']):
                     city_column = col
                     break
             
             if not city_column:
-                # Şehir ismi içermeyen sütunlarda alternatif arama
+                logger.warning(f"No city column found in {filename}, trying all columns")
+                # Tüm sütunlarda şehir arama
                 for col in df.columns:
-                    if any(keyword in col.lower() for keyword in ['şehir', 'city', 'il', 'location']):
-                        city_column = col
+                    for _, row in df.iterrows():
+                        cell_value = str(row[col]) if not pd.isna(row[col]) else ""
+                        if any(city.lower() in cell_value.lower() for city in TURKISH_CITIES):
+                            city_column = col
+                            break
+                    if city_column:
                         break
             
             if not city_column:
-                logger.warning(f"No city column found in {filename}")
+                logger.warning(f"No city data found in {filename}")
                 continue
             
+            logger.info(f"Using city column: {city_column}")
+            
             # Process each row
-            for _, row in df.iterrows():
-                city = row[city_column]
-                if pd.isna(city):
+            for index, row in df.iterrows():
+                city = row[city_column] if not pd.isna(row[city_column]) else ""
+                if not city:
                     continue
                     
                 # Find which group this city belongs to
+                city_str = str(city).strip()
                 city_added = False
+                
                 for group in groups:
-                    if any(c.lower() in str(city).lower() for c in group["cities"]):
-                        if group["name"] not in results:
-                            results[group["name"]] = []
-                        results[group["name"]].append(filepath)
-                        city_added = True
+                    group_iller = [il.strip() for il in group["iller"].split(",")]
+                    for il in group_iller:
+                        if il.lower() in city_str.lower():
+                            if group["no"] not in results:
+                                results[group["no"]] = []
+                            if filepath not in results[group["no"]]:
+                                results[group["no"]].append(filepath)
+                            city_added = True
+                            logger.debug(f"City '{city_str}' added to group {group['no']}")
+                            break
+                    if city_added:
                         break
                 
                 if not city_added:
-                    logger.debug(f"City '{city}' not found in any group")
+                    logger.debug(f"City '{city_str}' not found in any group")
         
         except Exception as e:
             logger.error(f"Error processing {filename}: {e}")
     
+    logger.info(f"Processing completed. Results: {results}")
     return results
 
-# Diğer fonksiyonlar aynı kalacak...
-
-async def create_group_excel(group_name: str, filepaths: list) -> str:
+async def create_group_excel(group_no: str, filepaths: list) -> str:
     """Create a combined Excel file for a group"""
     try:
+        # Grup bilgilerini bul
+        grup_info = None
+        for grup in groups:
+            if grup["no"] == group_no:
+                grup_info = grup
+                break
+        
+        if not grup_info:
+            logger.error(f"Group {group_no} not found")
+            return None
+            
         # Combine all data for this group
         all_dfs = []
         for filepath in filepaths:
-            df = pd.read_excel(filepath)
-            all_dfs.append(df)
+            try:
+                df = pd.read_excel(filepath)
+                all_dfs.append(df)
+            except Exception as e:
+                logger.error(f"Error reading {filepath}: {e}")
         
         if not all_dfs:
             return None
             
         combined_df = pd.concat(all_dfs, ignore_index=True)
         
-        # Generate filename with timestamp
+        # Generate filename with timestamp and group info
         now = datetime.datetime.now()
-        timestamp = now.strftime("%m%d_%H%M")
-        filename = f"{group_name}_{timestamp}.xlsx"
+        timestamp = now.strftime("%Y%m%d_%H%M%S")
+        filename = f"{group_no}_{grup_info['ad']}_{timestamp}.xlsx"
         filepath = os.path.join(TEMP_DIR, filename)
         
         # Save the combined Excel
         combined_df.to_excel(filepath, index=False)
+        logger.info(f"Group Excel created: {filepath}")
         return filepath
         
     except Exception as e:
-        logger.error(f"Error creating group Excel for {group_name}: {e}")
+        logger.error(f"Error creating group Excel for {group_no}: {e}")
         return None
