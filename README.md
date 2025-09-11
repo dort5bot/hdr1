@@ -1,3 +1,8 @@
+🟨Grup listesi kaydetsin
+data/grup
+
+
+
 hidir_bot/
 ├── main.py
 ├── config.py
