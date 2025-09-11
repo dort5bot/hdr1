@@ -19,6 +19,7 @@ async def process_excel_files() -> dict:
         try:
             # Read Excel file
             df = pd.read_excel(filepath)
+            logger.info(f"Processing file: {filename} with columns: {list(df.columns)}")
             
             # Find the city column (case insensitive)
             city_column = None
@@ -26,6 +27,13 @@ async def process_excel_files() -> dict:
                 if any(city.lower() in col.lower() for city in TURKISH_CITIES):
                     city_column = col
                     break
+            
+            if not city_column:
+                # Şehir ismi içermeyen sütunlarda alternatif arama
+                for col in df.columns:
+                    if any(keyword in col.lower() for keyword in ['şehir', 'city', 'il', 'location']):
+                        city_column = col
+                        break
             
             if not city_column:
                 logger.warning(f"No city column found in {filename}")
@@ -38,17 +46,24 @@ async def process_excel_files() -> dict:
                     continue
                     
                 # Find which group this city belongs to
+                city_added = False
                 for group in groups:
                     if any(c.lower() in str(city).lower() for c in group["cities"]):
                         if group["name"] not in results:
                             results[group["name"]] = []
                         results[group["name"]].append(filepath)
+                        city_added = True
                         break
+                
+                if not city_added:
+                    logger.debug(f"City '{city}' not found in any group")
         
         except Exception as e:
             logger.error(f"Error processing {filename}: {e}")
     
     return results
+
+# Diğer fonksiyonlar aynı kalacak...
 
 async def create_group_excel(group_name: str, filepaths: list) -> str:
     """Create a combined Excel file for a group"""
