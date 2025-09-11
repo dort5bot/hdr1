@@ -11,6 +11,12 @@ SMTP_SERVER=smtp.gmail.com
 TELEGRAM_BOT=8*********0
 TELEGRAM_NAME=hbot10
 
+
+# Grup Yapılandırması (JSON formatında)
+GROUPS_CONFIG=[{"name": "ege", "cities": ["İzmir", "Aydın", "Muğla"], "email": "ege@example.com"}, {"name": "akdeniz", "cities": ["Antalya", "Mersin", "Adana"], "email": "akdeniz@example.com"}]
+
+
+
 # Mod Seçimi
 USE_WEBHOOK=false
 
