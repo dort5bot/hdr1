@@ -29,6 +29,7 @@ async def cmd_checkmail(message: Message):
     else:
         await message.answer("Yeni mail bulunamadı.")
 
+# process komutunu güncelleyin:
 @router.message(Command("process"))
 async def cmd_process(message: Message):
     """Excel dosyalarını işleme komutu"""
@@ -36,48 +37,55 @@ async def cmd_process(message: Message):
         await message.answer("Bu botu kullanma yetkiniz yok.")
         return
         
-    await message.answer("Excel dosyaları işleniyor...")
+    processing_msg = await message.answer("⏳ Excel dosyaları işleniyor...")
     
-    # Process Excel files
-    group_results = await process_excel_files()
-    
-    if not group_results:
-        await message.answer("İşlenecek veri bulunamadı.")
-        return
-    
-    # Create and send group Excel files
-    sent_groups = []
-    for group_name, filepaths in group_results.items():
-        # Find group email
-        group_email = None
-        for group in groups:
-            if group["name"] == group_name:
-                group_email = group["email"]
-                break
+    try:
+        # Process Excel files
+        group_results = await process_excel_files()
         
-        if not group_email:
-            continue
+        if not group_results:
+            await processing_msg.edit_text("❌ İşlenecek veri bulunamadı.")
+            return
+        
+        # Create and send group Excel files
+        sent_groups = []
+        for group_no, filepaths in group_results.items():
+            # Find group email
+            group_email = None
+            group_name = ""
+            for group in groups:
+                if group["no"] == group_no:
+                    group_email = group["email"]
+                    group_name = group["ad"]
+                    break
             
-        # Create group Excel
-        group_filepath = await create_group_excel(group_name, filepaths)
-        if group_filepath:
-            # Send email with attachment
-            now = datetime.datetime.now()
-            subject = f"{group_name} Grubu Verileri - {now.strftime('%d/%m/%Y %H:%M')}"
-            body = f"{group_name} grubu için Excel dosyası ekte gönderilmiştir."
+            if not group_email:
+                continue
+                
+            # Create group Excel
+            group_filepath = await create_group_excel(group_no, filepaths)
+            if group_filepath:
+                # Send email with attachment
+                now = datetime.datetime.now()
+                subject = f"{group_no} - {group_name} Grubu Verileri - {now.strftime('%d/%m/%Y %H:%M')}"
+                body = f"{group_name} grubu için Excel dosyası ekte gönderilmiştir.\n\nToplam {len(filepaths)} dosya işlenmiştir."
+                
+                success = await send_email(group_email, subject, body, group_filepath)
+                if success:
+                    sent_groups.append(f"{group_no} - {group_name}")
+        
+        # Send report
+        if sent_groups:
+            response = "✅ **Mail gönderildi:**\n\n"
+            for i, group_info in enumerate(sent_groups, 1):
+                response += f"{i}. {group_info}\n"
+            await processing_msg.edit_text(response)
+        else:
+            await processing_msg.edit_text("❌ Hiçbir gruba mail gönderilemedi.")
             
-            success = await send_email(group_email, subject, body, group_filepath)
-            if success:
-                sent_groups.append(group_name)
-    
-    # Send report
-    if sent_groups:
-        response = "Mail gönderildi:\n"
-        for i, group_name in enumerate(sent_groups, 1):
-            response += f"{i}. {group_name}\n"
-        await message.answer(response)
-    else:
-        await message.answer("Hiçbir gruba mail gönderilemedi.")
+    except Exception as e:
+        logger.error(f"Process command error: {e}")
+        await processing_msg.edit_text(f"❌ İşlem sırasında hata oluştu: {str(e)}")
 
 @router.message(Command("cleanup"))
 async def cmd_cleanup(message: Message):
