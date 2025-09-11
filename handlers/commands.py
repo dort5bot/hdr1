@@ -9,6 +9,8 @@ import datetime
 import time
 import psutil
 import os
+import json
+from dotenv import load_dotenv
 
 router = Router()
 logger = logging.getLogger(__name__)
@@ -31,6 +33,8 @@ async def cmd_start(message: Message):
         "/gr - Grupları listeler\n"
         "/grek - Yeni grup ekler\n"
         "/grsil - Grup siler\n"
+        "/gruplari_yenile - Grupları .env'den yeniden yükler\n"
+        "/grup_ornek - Grup JSON örneği gösterir\n"
         "/checkmail - Manuel olarak mail kontrolü yapar\n"
         "/process - Sadece Excel işleme yapar (mail kontrolü yapmaz)\n"
         "/cleanup - Temp klasörünü manuel temizler\n"
@@ -237,6 +241,47 @@ async def cmd_grsil(message: Message):
         await message.answer(f"✅ `{removed_group['name']}` grubu silindi.")
     except ValueError:
         await message.answer("❌ Geçersiz sıra numarası.")
+
+@router.message(Command("gruplari_yenile"))
+async def cmd_refresh_groups(message: Message):
+    """Grupları .env'den yeniden yükler"""
+    if message.from_user.id not in ADMIN_IDS:
+        await message.answer("Bu botu kullanma yetkiniz yok.")
+        return
+        
+    try:
+        from config import groups
+        load_dotenv()
+        GROUPS_CONFIG = os.getenv("GROUPS_CONFIG", "[]")
+        groups.clear()
+        groups.extend(json.loads(GROUPS_CONFIG))
+        
+        await message.answer(f"✅ Gruplar yenilendi. Toplam {len(groups)} grup yüklendi.")
+    except Exception as e:
+        await message.answer(f"❌ Grup yenileme hatası: {str(e)}")
+
+@router.message(Command("grup_ornek"))
+async def cmd_group_example(message: Message):
+    """Grup JSON örneği gösterir"""
+    example = """
+Örnek Grup JSON:
+[
+  {
+    "name": "ege",
+    "cities": ["İzmir", "Aydın", "Muğla"],
+    "email": "ege@example.com"
+  },
+  {
+    "name": "akdeniz", 
+    "cities": ["Antalya", "Mersin", "Adana"],
+    "email": "akdeniz@example.com"
+  }
+]
+
+.env dosyasına ekleyin:
+GROUPS_CONFIG=[{"name": "ege", "cities": ["İzmir", "Aydın", "Muğla"], "email": "ege@example.com"}]
+"""
+    await message.answer(f"<pre>{example}</pre>", parse_mode="HTML")
 
 @router.message(Command("proc"))
 async def cmd_proc(message: Message):
