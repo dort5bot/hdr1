@@ -1,0 +1,40 @@
+Bu kod dosyası (scheduled_tasks.py), bir asenkron zamanlayıcı (scheduler) kullanarak belirli aralıklarla bazı görevleri otomatik olarak çalıştırmak için yazılmıştır. Kodun amacı, bir Telegram botu gibi çalışan bir uygulamada:
+🔧 Temel Görevler
+1. E-posta kontrolü (scheduled_email_check)
+Belirli aralıklarla gelen e-postaları kontrol eder.
+Yeni ekli Excel dosyaları varsa, admin kullanıcılarına (Telegram üzerinden) mesaj gönderir.
+2. Geçici dosya temizliği (scheduled_cleanup)
+Her gün saat 23:59'da, geçici dosyaları temizler.
+📌 Fonksiyonların Açıklamaları
+✅ scheduled_email_check(bot)
+email_utils.check_email() fonksiyonunu çağırarak yeni gelen e-postaları kontrol eder.
+Yeni ekli dosyalar varsa, ADMIN_IDS listesindeki her bir admin'e bir mesaj gönderir.
+Hatalar log'a yazılır.
+✅ scheduled_cleanup()
+file_utils.cleanup_temp() fonksiyonu ile geçici dosyaları siler.
+Hatalar log'a yazılır.
+✅ schedule_email_check(bot) ve schedule_cleanup()
+Yukarıdaki görevleri asyncio.create_task() ile zamanlayıcıya uygun şekilde çalıştırmak için sarıcı fonksiyonlardır (wrapper).
+Böylece görevler bloklamadan arka planda çalışır.
+✅ scheduler(bot)
+aioschedule kütüphanesi ile zamanlama yapılır:
+Her 10 dakikada bir e-posta kontrolü yapılır.
+Her gün saat 23:59'da geçici dosya temizliği yapılır.
+Bu görevleri sürekli olarak çalıştırmak için sonsuz döngü içinde aioschedule.run_pending() kullanılır.
+🧠 Kullanım Senaryosu
+Bu kod genellikle bir Telegram botunun parçası olarak arka planda çalışır ve:
+Düzenli olarak e-posta kutusunu kontrol eder,
+Yeni gelen Excel dosyalarını tespit edip admin'lere bildirir,
+Her gün geçici dosyaları temizleyerek sistemi düzenli tutar.
+🧩 Bağımlılıklar
+Kod, şu modüllere bağımlı:
+email_utils ve file_utils: E-posta kontrolü ve dosya temizliği için özel yardımcı modüller.
+ADMIN_IDS: Admin kullanıcı ID’lerini içeren bir liste (config.py içinden).
+aioschedule: Asenkron zamanlama için.
+asyncio: Asenkron görevlerin çalıştırılması için.
+📝 Özetle:
+Bu dosya, bir Telegram botunun:
+Otomatik e-posta kontrolü,
+Dosya temizliği gibi
+Periyodik görevlerini zamanlamak ve yönetmek için kullanılır.
+İstersen, bu kodu nasıl test edeceğini veya nasıl genişletebileceğini de anlatabilirim.
