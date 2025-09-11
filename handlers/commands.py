@@ -60,6 +60,61 @@ async def cmd_start(message: Message):
         "/testmail_ayar Mail ayarlarını test et:\n" 
     )
 
+# Basit Bir Test Komutu Eklelim:
+# handlers/commands.py'ye ekleyelim
+@router.message(Command("test_excel_olustur"))
+async def cmd_test_excel_olustur(message: Message):
+    """Excel oluşturma testi yapar"""
+    if message.from_user.id not in ADMIN_IDS:
+        await message.answer("Bu botu kullanma yetkiniz yok.")
+        return
+        
+    try:
+        # Temp'deki ilk Excel dosyasını kullanarak test yap
+        excel_files = [f for f in os.listdir(TEMP_DIR) if f.lower().endswith(('.xlsx', '.xls'))]
+        
+        if not excel_files:
+            await message.answer("❌ Test için Excel dosyası yok.")
+            return
+            
+        test_file = os.path.join(TEMP_DIR, excel_files[0])
+        
+        # Dosyayı oku
+        df = pd.read_excel(test_file)
+        await message.answer(f"✅ Dosya okundu: {excel_files[0]}, boyut: {df.shape}")
+        
+        # Yeni dosya oluştur
+        test_output = os.path.join(TEMP_DIR, "test_output.xlsx")
+        
+        # Farklı engine'lerle dene
+        engines = ['openpyxl', 'xlsxwriter', None]
+        success = False
+        
+        for engine in engines:
+            try:
+                if engine:
+                    df.to_excel(test_output, index=False, engine=engine)
+                else:
+                    df.to_excel(test_output, index=False)
+                
+                file_size = os.path.getsize(test_output)
+                await message.answer(f"✅ Excel oluşturuldu ({engine}): {file_size} bytes")
+                success = True
+                break
+                
+            except Exception as e:
+                await message.answer(f"❌ {engine} hatası: {str(e)}")
+        
+        if success:
+            # Dosyayı sil
+            os.remove(test_output)
+            await message.answer("✅ Test başarılı! Excel oluşturma çalışıyor.")
+        else:
+            await message.answer("❌ Hiçbir engine ile Excel oluşturulamadı.")
+        
+    except Exception as e:
+        await message.answer(f"❌ Excel oluşturma testi hatası: {str(e)}")
+
 # handlers/commands.py'ye yeni test komutu ekleyelim
 @router.message(Command("testmail_ayar"))
 async def cmd_testmail_ayar(message: Message):
