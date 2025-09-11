@@ -30,6 +30,7 @@ async def cmd_checkmail(message: Message):
         await message.answer("Yeni mail bulunamadı.")
 
 # process komutunu güncelleyin:
+# handlers/email_handlers.py - process komutunu düzeltelim
 @router.message(Command("process"))
 async def cmd_process(message: Message):
     """Excel dosyalarını işleme komutu"""
@@ -51,17 +52,13 @@ async def cmd_process(message: Message):
         sent_groups = []
         for group_no, filepaths in group_results.items():
             # Find group email
-            group_email = None
-            group_name = ""
-            for group in groups:
-                if group["no"] == group_no:
-                    group_email = group["email"]
-                    group_name = group["ad"]
-                    break
-            
-            if not group_email:
+            group_info = next((g for g in groups if g["no"] == group_no), None)
+            if not group_info:
                 continue
                 
+            group_email = group_info["email"]
+            group_name = group_info["name"]
+            
             # Create group Excel
             group_filepath = await create_group_excel(group_no, filepaths)
             if group_filepath:
@@ -86,6 +83,7 @@ async def cmd_process(message: Message):
     except Exception as e:
         logger.error(f"Process command error: {e}")
         await processing_msg.edit_text(f"❌ İşlem sırasında hata oluştu: {str(e)}")
+        
 
 @router.message(Command("cleanup"))
 async def cmd_cleanup(message: Message):
