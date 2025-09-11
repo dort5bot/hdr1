@@ -30,23 +30,21 @@ LOG: logging.Logger = logging.getLogger(__name__)
 # COMMAND INFO
 COMMAND_INFO: Dict[str, str] = {
     "dar": "/dar: Dosya tree, /dar k: komut listesi, /dar z:repo zip, /dar t: tüm içerik txt",
-    "io": "In-Out Alış Satış Baskısı raporu",
-    "nls": "Balina hareketleri ve yoğunluk (NLS analizi)",
-    "npr": "Nakit Piyasa Raporu",
-    "eft": "wobot2 etf  → yok",
-    "ap": "Altların Güç Endeksi (AP)",
-    "p": "/p liste, /pn :hacimli n coin, /pd n:düşen n coin,/p coin1...: Anlıkfiyat+24hdeğişim+hacim",
-    "p_ekle": "Favori coin listesine coin ekler",
-    "p_fav": "Favori coin listesini gösterir",
-    "p_sil": "Favori coin listesinden coin siler",
-    "fr": "Funding Rate raporu ve günlük CSV kaydı",
-    "whale": "Whale Alerts raporu ve günlük CSV kaydı",
-    "t": "/t →hazir liste, /t n →hacimli n coin, /t coin zaman →coin zaman bilgisi",
-    "etf": "wobot2 etf  → yok",
+    "/kay" : " Kaynak mail adreslerini listeler"	,
+    "/kayek" : " Kaynak mail adresi ekler"	,
+    "/kaysil" : " Kaynak mail adresi siler"	,
+    "/gr" : " Grupları listeler"	,
+    "/grek" : " Yeni grup ekler"	,
+    "/grsil" : " Grup siler"	,
+    "/checkmail" : " Manuel olarak mail kontrolü yapar"	,
+    "/process" : " Sadece Excel işleme yapar (mail kontrolü yapmaz)"	,
+    "/cleanup" : " Temp klasörünü manuel temizler"	,
+    "/stats" : " Bot istatistiklerini gösterir"	,
+    "/proc" : " Excel dosyalarını işler"	,
     "komut": "tınak_içi_açıklama_ sonrasında VİRGÜL",
 }
 
-# # 👇 Tek tip isim: router 1/2
+# 👇 Tek tip isim: router
 router = Router(name="dar_handler")
 
 
@@ -237,3 +235,9 @@ async def handle_dar_command(message: Message) -> None:
     except Exception as e:
         LOG.error(f"Dar komutu işlenirken hata: {e}")
         await message.answer(f"❌ Hata: {str(e)}")
+
+
+# Handler loader compatibility
+async def register_handlers(router_instance: Router):
+    """Register handlers with the router - required for handler_loader"""
+    router_instance.include_router(router)
