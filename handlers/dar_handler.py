@@ -1,4 +1,4 @@
-#handlers/dar_handler.py
+#dar_handler.py
 from __future__ import annotations
 
 import os
@@ -13,7 +13,7 @@ from typing import Dict, List, Optional, Tuple
 
 from dotenv import load_dotenv
 from aiogram import Router
-from aiogram.types import Message
+from aiogram.types import Message, InputFile
 from aiogram.filters import Command
 
 # Load environment
@@ -30,24 +30,35 @@ CACHE_DURATION = 30  # 30 saniye önbellekleme
 LOG: logging.Logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 
-# COMMAND INFO
+# COMMAND INFO - Tüm komutlar için kapsamlı açıklamalar
 COMMAND_INFO: Dict[str, str] = {
-    "dar": "/dar: Dosya tree, /dar k: komut listesi, /dar z:repo zip, /dar t: tüm içerik txt",
-    "/kay" : " Kaynak mail adreslerini listeler",
-    "/kayek" : " Kaynak mail adresi ekler",
-    "/kaysil" : " Kaynak mail adresi siler",
-    "/gr" : " Grupları listeler",
-    "/grek" : " Yeni grup ekler",
-    "/grsil" : " Grup siler",
-    "/checkmail" : " Manuel olarak mail kontrolü yapar",
-    "/process" : " Sadece Excel işleme yapar (mail kontrolü yapmaz)",
-    "/cleanup" : " Temp klasörünü manuel temizler",
-    "/stats" : " Bot istatistiklerini gösterir",
-    "/proc" : " Excel dosyalarını işler",
-    "komut": "tınak_içi_açıklama_ sonrasında VİRGÜL",
+    "dar": "Dosya tree, komut listesi, repo zip, tüm içerik txt",
+    "start": "Botu başlatır ve komut listesini gösterir",
+    "kay": "Kaynak mail adreslerini listeler",
+    "kayek": "Kaynak mail adresi ekler",
+    "kaysil": "Kaynak mail adresi siler",
+    "gr": "Grupları listeler",
+    "grek": "Yeni grup ekler",
+    "grsil": "Grup siler",
+    "checkmail": "Manuel olarak mail kontrolü yapar",
+    "process": "Sadece Excel işleme yapar (mail kontrolü yapmaz)",
+    "cleanup": "Temp klasörünü manuel temizler",
+    "stats": "Bot istatistiklerini gösterir",
+    "proc": "Excel dosyalarını işler",
+    "health": "Bot sağlık durumunu kontrol eder",
+    "ping": "Yanıt süresini test eder",
+    "status": "Detaylı sistem durumunu gösterir",
+    "gruplar": "Tüm grupları listeler",
+    "grupekle": "Yeni grup ekler",
+    "grupsil": "Grup siler",
+    "grupduzenle": "Grup düzenler",
+    "grupyedekle": "Grupları JSON olarak gösterir",
+    "grupsifirla": "Grupları sıfırlar",
+    "gruplari_yenile": "Grupları .env'den yeniden yükler",
+    "grup_ornek": "Grup JSON örneği gösterir",
 }
 
-# 👇 Tek tip isim: router
+# Router tanımı
 router = Router(name="dar_handler")
 
 
@@ -108,18 +119,25 @@ class DarService:
 
     async def _scan_handlers(self) -> Dict[str, str]:
         commands: Dict[str, str] = {}
+        # Kapsamlı regex pattern'leri
         patterns = [
-            r'@\w+\.message\(Command\([\'"](\w+)[\'"]\)\)',
-            r'Command\([\'"](\w+)[\'"]\)',
+            r'@router\.message\(Command\(["\'](\w+)["\']\)\)',
+            r'Command\(["\'](\w+)["\']\)',
+            r'@router\.message\(Command\(["\']([\w_]+)["\']\)\)',
+            r'Command\(["\']([\w_]+)["\']\)',
+            r'@\w+\.message\(Command\(["\'](\w+)["\']\)\)',
+            r'@\w+\.message\(Command\(["\']([\w_]+)["\']\)\)',
         ]
 
         if not self.handlers_dir.exists():
             LOG.error("Handlers dizini bulunamadı")
             return commands
 
+        # Tüm handler dosyalarını tarayalım
         for fname in os.listdir(self.handlers_dir):
-            if not fname.endswith("_handler.py"):
+            if not fname.endswith('.py') or fname == '__init__.py':
                 continue
+                
             fpath = self.handlers_dir / fname
             try:
                 content = await asyncio.to_thread(fpath.read_text, encoding="utf-8")
@@ -135,9 +153,24 @@ class DarService:
                 except re.error as e:
                     LOG.warning(f"Regex hatası {pattern}: {e}")
 
+            # Router decorator'larını da kontrol et
+            router_patterns = [
+                r'@router\.message\(Command\(["\'](\w+)["\']\)\)',
+                r'@\w+\.message\(Command\(["\'](\w+)["\']\)\)',
+            ]
+            
+            for pattern in router_patterns:
+                try:
+                    matches = re.findall(pattern, content, flags=re.IGNORECASE)
+                    found_commands.update(matches)
+                except re.error as e:
+                    LOG.warning(f"Router regex hatası {pattern}: {e}")
+
             for cmd in found_commands:
-                desc = COMMAND_INFO.get(cmd.lower(), "(açıklama yok)")
-                commands[f"/{cmd}"] = f"{desc} ({fname})"
+                # Sadece geçerli komutları ekle (boş string olmayan)
+                if cmd and cmd.strip():
+                    desc = COMMAND_INFO.get(cmd.lower(), "(açıklama yok)")
+                    commands[f"/{cmd}"] = f"{desc} ({fname})"
 
         LOG.info(f"{len(commands)} komut bulundu")
         return commands
@@ -205,8 +238,8 @@ async def handle_dar_command(message: Message) -> None:
                 txt_filename = Path(f"{TELEGRAM_NAME}_commands_{timestamp}.txt")
                 txt_filename.write_text(text, encoding="utf-8")
                 try:
-                    with txt_filename.open("rb") as file:
-                        await message.answer_document(document=file, filename=txt_filename.name)
+                    input_file = InputFile(txt_filename, filename=txt_filename.name)
+                    await message.answer_document(document=input_file)
                 finally:
                     txt_filename.unlink(missing_ok=True)
             else:
@@ -221,8 +254,8 @@ async def handle_dar_command(message: Message) -> None:
                 zip_path.unlink(missing_ok=True)
                 return
             try:
-                with zip_path.open("rb") as file:
-                    await message.answer_document(document=file, filename=zip_path.name)
+                input_file = InputFile(zip_path, filename=zip_path.name)
+                await message.answer_document(document=input_file)
             finally:
                 zip_path.unlink(missing_ok=True)
             return
@@ -235,8 +268,8 @@ async def handle_dar_command(message: Message) -> None:
                 txt_path.unlink(missing_ok=True)
                 return
             try:
-                with txt_path.open("rb") as file:
-                    await message.answer_document(document=file, filename=txt_path.name)
+                input_file = InputFile(txt_path, filename=txt_path.name)
+                await message.answer_document(document=input_file)
             finally:
                 txt_path.unlink(missing_ok=True)
             return
@@ -253,8 +286,8 @@ async def handle_dar_command(message: Message) -> None:
             txt_filename = Path(f"{TELEGRAM_NAME}_tree_{timestamp}.txt")
             txt_filename.write_text(tree_text, encoding="utf-8")
             try:
-                with txt_filename.open("rb") as file:
-                    await message.answer_document(document=file, filename=txt_filename.name)
+                input_file = InputFile(txt_filename, filename=txt_filename.name)
+                await message.answer_document(document=input_file)
             finally:
                 txt_filename.unlink(missing_ok=True)
         else:
