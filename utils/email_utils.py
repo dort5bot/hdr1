@@ -8,7 +8,7 @@ from email.mime.text import MIMEText
 from email.mime.application import MIMEApplication
 import logging
 import os
-from config import source_emails, TEMP_DIR, processed_mail_ids
+from config import source_emails, TEMP_DIR, processed_mail_ids, IMAP_SERVER, IMAP_PORT
 
 logger = logging.getLogger(__name__)
 
@@ -18,16 +18,18 @@ async def check_email() -> list:
     
     try:
         # Connect to IMAP server
-        mail = imaplib.IMAP4_SSL("imap.gmail.com")
+        mail = imaplib.IMAP4_SSL(IMAP_SERVER, IMAP_PORT)
         mail.login(os.getenv("MAIL_BEN"), os.getenv("MAIL_PASSWORD"))
         mail.select("inbox")
         
         # Search for all unseen emails
         status, messages = mail.search(None, 'UNSEEN')
         if status != "OK":
+            logger.error("IMAP search failed")
             return new_files
             
         email_ids = messages[0].split()
+        logger.info(f"Found {len(email_ids)} unseen emails")
         
         for email_id in email_ids:
             # Fetch the email
@@ -41,11 +43,15 @@ async def check_email() -> list:
                     
                     # Check if email is from a monitored source
                     from_email = msg["From"]
+                    logger.info(f"Processing email from: {from_email}")
+                    
                     if not any(source in from_email for source in source_emails):
+                        logger.debug(f"Email not from monitored source: {from_email}")
                         continue
                     
                     # Check if we've already processed this email
                     if email_id in processed_mail_ids:
+                        logger.debug(f"Email already processed: {email_id}")
                         continue
                     
                     # Process attachments
@@ -78,6 +84,8 @@ async def check_email() -> list:
         logger.error(f"Error checking email: {e}")
     
     return new_files
+
+# Diğer fonksiyonlar aynı kalacak...
 
 async def send_email(to_email: str, subject: str, body: str, attachment_path: str = None) -> bool:
     """Send email with attachment using SMTP"""
