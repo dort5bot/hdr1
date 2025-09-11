@@ -57,7 +57,40 @@ async def cmd_start(message: Message):
         "/normalize_test - Normalizasyon testi yap: \n"
         "/detayli_test - Detaylı test yap: \n"
         "/testexcel - Excel işlemeyi dene: \n"
+        "/testmail_ayar Mail ayarlarını test et:\n" 
     )
+
+# handlers/commands.py'ye yeni test komutu ekleyelim
+@router.message(Command("testmail_ayar"))
+async def cmd_testmail_ayar(message: Message):
+    """Mail ayarlarını test eder"""
+    if message.from_user.id not in ADMIN_IDS:
+        await message.answer("Bu botu kullanma yetkiniz yok.")
+        return
+        
+    try:
+        # Mail ayarlarını kontrol et
+        mail_ben = os.getenv("MAIL_BEN")
+        mail_password = os.getenv("MAIL_PASSWORD")
+        smtp_server = os.getenv("SMTP_SERVER", "smtp.gmail.com")
+        smtp_port = int(os.getenv("SMTP_PORT", "587"))
+        
+        response = "📧 **Mail Ayarları:**\n\n"
+        response += f"• Mail: {'✅' if mail_ben else '❌'} {mail_ben}\n"
+        response += f"• Şifre: {'✅' if mail_password else '❌'} {'*' * len(mail_password) if mail_password else 'Yok'}\n"
+        response += f"• SMTP: {smtp_server}:{smtp_port}\n"
+        
+        # Basit bir test
+        if mail_ben and mail_password:
+            response += "\n✅ **Mail ayarları görünüyor**\n"
+        else:
+            response += "\n❌ **Mail ayarları eksik**\n"
+            response += ".env dosyasında MAIL_BEN ve MAIL_PASSWORD kontrol edin\n"
+        
+        await message.answer(response)
+        
+    except Exception as e:
+        await message.answer(f"❌ Mail ayar testi hatası: {str(e)}")
 
 # handlers/commands.py'e yeni komutlar ekleyelim
 @router.message(Command("detayli_test"))
