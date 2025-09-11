@@ -30,12 +30,12 @@ GROUPS_FILE = DATA_DIR / "groups.json"
 # Varsayılan gruplar (verilen listeniz)
 DEFAULT_GROUPS = [
     {"no": "GRUP_1", "ad": "ANTALYA", "iller": "Afyon,Aksaray,Ankara,Antalya,Burdur,Çankırı,Isparta,Karaman,Kayseri,Kırıkkale,Kırşehir,Konya,Uşak", "email": "anadolulistehdr@gmail.com"},
-    {"no": "GRUP_2", "ad": "MERSİN", "iller": "Adana,Adıyaman,Batman,Bingöl,Bitlis,Diyarbakır,Elazığ,Gaziantep,Hakkâri,Hatay,Kahramanmaraş,Kilis,Malatya,Mardin,Mersin,Muş,Osmaniye,Siirt,Şanlıurfa,Şırnak", "email": "anadolulistehdr@gmail.com"},
+    {"no": "GRUP_2", "ad": "MERSİN", "iller": "Adana,Adıyaman,Batman,Bingöl,Bitlis,Diyarbakır,Elazığ,Gaziantep,Hakkâri,Hatay,Kahramanmaraş,Kilis,Malatya,Mardin,Mersin,Muş,Osmaniye,Siirt,Şanlıurfa,Şırnak", "email": "dersdep@gmail.com"},
     {"no": "GRUP_3", "ad": "İZMİR", "iller": "Afyon,Aydın,Burdur,Isparta,İzmir,ÇANAKKALE,Manisa,Muğla,Uşak", "email": "anadolulistehdr@gmail.com"},
     {"no": "GRUP_4", "ad": "BURSA", "iller": "Balıkesir,Bursa,Çanakkale,Düzce,Kocaeli,Sakarya,Tekirdağ,Yalova", "email": "anadolulistehdr@gmail.com"},
     {"no": "GRUP_5", "ad": "BALIKESİR", "iller": "BALIKESİR,ÇANAKKALE", "email": "anadolulistehdr@gmail.com"},
-    {"no": "GRUP_6", "ad": "KARADENİZ", "iller": "Artvin,Bayburt,Çankırı,Erzincan,Erzurum,Giresun,Gümüşhane,Ordu,Rize,Samsun,Sinop,Sivas,Tokat,Trabzon", "email": "GRUP_6@gmail.com"},
-    {"no": "GRUP_7", "ad": "ERZİNCAN", "iller": "Bingöl,Erzincan,Erzurum,Giresun,Gümüşhane,Kars,Ordu,Sivas,Şırnak,Tokat,Tunceli", "email": "GRUP_7@gmail.com"},
+    {"no": "GRUP_6", "ad": "KARADENİZ", "iller": "Artvin,Bayburt,Çankırı,Erzincan,Erzurum,Giresun,Gümüşhane,Ordu,Rize,Samsun,Sinop,Sivas,Tokat,Trabzon", "email": "dersdep@gmail.com"},
+    {"no": "GRUP_7", "ad": "ERZİNCAN", "iller": "Bingöl,Erzincan,Erzurum,Giresun,Gümüşhane,Kars,Ordu,Sivas,Şırnak,Tokat,Tunceli", "email": "dersdep@gmail.com"},
     {"no": "GRUP_8", "ad": "ESKİŞEHİR", "iller": "Afyon,Ankara,Bilecik,Eskişehir,Uşak", "email": "GRUP_8@gmail.com"},
     {"no": "GRUP_9", "ad": "KÜTAHYA", "iller": "Afyon,Ankara,Bilecik,Bozüyük,Bursa,Eskişehir,Kütahya,Uşak", "email": "GRUP_9@gmail.com"},
     {"no": "GRUP_10", "ad": "ÇORUM", "iller": "Amasya,Ankara,Çankırı,Çorum,Kastamonu,Kayseri,Kırıkkale,Kırşehir,Samsun,Tokat,Yozgat", "email": "GRUP_10@gmail.com"},
