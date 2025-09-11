@@ -156,9 +156,12 @@ def process_rows_advanced(df, city_column, results, filename):
     if unmatched_cities:
         logger.warning(f"Eşleşmeyen şehirler: {sorted(unmatched_cities)}")
 
+#create_group_excel Fonksiyonunu Düzeltelim:
 async def create_group_excel(group_no: str, filepaths: list) -> str:
     """Create a combined Excel file for a group"""
     try:
+        logger.info(f"Creating Excel for group {group_no} with files: {filepaths}")
+        
         # Grup bilgilerini bul
         grup_info = None
         for grup in groups:
@@ -167,22 +170,32 @@ async def create_group_excel(group_no: str, filepaths: list) -> str:
                 break
         
         if not grup_info:
-            logger.error(f"Group {group_no} not found")
+            logger.error(f"Group {group_no} not found in groups list")
             return None
             
         # Combine all data for this group
         all_dfs = []
         for filepath in filepaths:
             try:
+                logger.info(f"Reading file: {filepath}")
                 df = pd.read_excel(filepath)
+                logger.info(f"File {os.path.basename(filepath)} shape: {df.shape}")
                 all_dfs.append(df)
             except Exception as e:
                 logger.error(f"Error reading {filepath}: {e}")
+                return None
         
         if not all_dfs:
+            logger.error("No dataframes to combine")
             return None
             
-        combined_df = pd.concat(all_dfs, ignore_index=True)
+        # Combine dataframes
+        try:
+            combined_df = pd.concat(all_dfs, ignore_index=True)
+            logger.info(f"Combined dataframe shape: {combined_df.shape}")
+        except Exception as e:
+            logger.error(f"Error concatenating dataframes: {e}")
+            return None
         
         # Generate filename with timestamp and group info
         now = datetime.datetime.now()
@@ -191,9 +204,21 @@ async def create_group_excel(group_no: str, filepaths: list) -> str:
         filepath = os.path.join(TEMP_DIR, filename)
         
         # Save the combined Excel
-        combined_df.to_excel(filepath, index=False)
-        logger.info(f"Group Excel created: {filepath}")
-        return filepath
+        try:
+            combined_df.to_excel(filepath, index=False, engine='openpyxl')
+            logger.info(f"Group Excel successfully created: {filepath}")
+            logger.info(f"File size: {os.path.getsize(filepath)} bytes")
+            return filepath
+        except Exception as e:
+            logger.error(f"Error saving Excel file: {e}")
+            # openpyxl yoksa xlsxwriter dene
+            try:
+                combined_df.to_excel(filepath, index=False, engine='xlsxwriter')
+                logger.info(f"Group Excel created with xlsxwriter: {filepath}")
+                return filepath
+            except Exception as e2:
+                logger.error(f"Error with xlsxwriter too: {e2}")
+                return None
         
     except Exception as e:
         logger.error(f"Error creating group Excel for {group_no}: {e}")
