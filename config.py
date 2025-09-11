@@ -1,6 +1,7 @@
 import os
-from dotenv import load_dotenv
 import json
+from dotenv import load_dotenv
+from pathlib import Path
 
 load_dotenv()
 
@@ -21,13 +22,45 @@ MAIL_BEN = os.getenv("MAIL_BEN")
 MAIL_PASSWORD = os.getenv("MAIL_PASSWORD")
 ADMIN_IDS = [int(id.strip()) for id in os.getenv("ADMIN_IDS", "").split(",") if id.strip()]
 
-# Grup yapılandırması - JSON formatında
-GROUPS_CONFIG = os.getenv("GROUPS_CONFIG", "[]")
-try:
-    groups = json.loads(GROUPS_CONFIG)
-except json.JSONDecodeError:
-    groups = []
-    print("Gruplar JSON formatında olmalıdır!")
+# Grup veri dosyası
+DATA_DIR = Path("data")
+DATA_DIR.mkdir(exist_ok=True)
+GROUPS_FILE = DATA_DIR / "groups.json"
+
+# Varsayılan gruplar (verilen listeniz)
+DEFAULT_GROUPS = [
+    {"no": "GRUP_1", "ad": "ANTALYA", "iller": "Afyon,Aksaray,Ankara,Antalya,Burdur,Çankırı,Isparta,Karaman,Kayseri,Kırıkkale,Kırşehir,Konya,Uşak", "email": "anadolulistehdr@gmail.com"},
+    {"no": "GRUP_2", "ad": "MERSİN", "iller": "Adana,Adıyaman,Batman,Bingöl,Bitlis,Diyarbakır,Elazığ,Gaziantep,Hakkâri,Hatay,Kahramanmaraş,Kilis,Malatya,Mardin,Mersin,Muş,Osmaniye,Siirt,Şanlıurfa,Şırnak", "email": "anadolulistehdr@gmail.com"},
+    {"no": "GRUP_3", "ad": "İZMİR", "iller": "Afyon,Aydın,Burdur,Isparta,İzmir,ÇANAKKALE,Manisa,Muğla,Uşak", "email": "anadolulistehdr@gmail.com"},
+    {"no": "GRUP_4", "ad": "BURSA", "iller": "Balıkesir,Bursa,Çanakkale,Düzce,Kocaeli,Sakarya,Tekirdağ,Yalova", "email": "anadolulistehdr@gmail.com"},
+    {"no": "GRUP_5", "ad": "BALIKESİR", "iller": "BALIKESİR,ÇANAKKALE", "email": "anadolulistehdr@gmail.com"},
+    {"no": "GRUP_6", "ad": "KARADENİZ", "iller": "Artvin,Bayburt,Çankırı,Erzincan,Erzurum,Giresun,Gümüşhane,Ordu,Rize,Samsun,Sinop,Sivas,Tokat,Trabzon", "email": "GRUP_6@gmail.com"},
+    {"no": "GRUP_7", "ad": "ERZİNCAN", "iller": "Bingöl,Erzincan,Erzurum,Giresun,Gümüşhane,Kars,Ordu,Sivas,Şırnak,Tokat,Tunceli", "email": "GRUP_7@gmail.com"},
+    {"no": "GRUP_8", "ad": "ESKİŞEHİR", "iller": "Afyon,Ankara,Bilecik,Eskişehir,Uşak", "email": "GRUP_8@gmail.com"},
+    {"no": "GRUP_9", "ad": "KÜTAHYA", "iller": "Afyon,Ankara,Bilecik,Bozüyük,Bursa,Eskişehir,Kütahya,Uşak", "email": "GRUP_9@gmail.com"},
+    {"no": "GRUP_10", "ad": "ÇORUM", "iller": "Amasya,Ankara,Çankırı,Çorum,Kastamonu,Kayseri,Kırıkkale,Kırşehir,Samsun,Tokat,Yozgat", "email": "GRUP_10@gmail.com"},
+    {"no": "GRUP_11", "ad": "DENİZLİ", "iller": "Afyon,Aydın,Burdur,Denizli,Isparta,İzmir,Manisa,Muğla,Uşak", "email": "GRUP_11@gmail.com"},
+    {"no": "GRUP_12", "ad": "AKHİSAR", "iller": "MANİSA", "email": "GRUP_12@gmail.com"},
+    {"no": "GRUP_13", "ad": "DÜZCE", "iller": "Bolu,Düzce,Edirne,İstanbul,Karabük,Kırklareli,Kocaeli,Sakarya,Tekirdağ,Yalova,Zonguldak", "email": "GRUP_13@gmail.com"},
+    {"no": "GRUP_14", "ad": "TUNCAY", "iller": "Aksaray,Ankara,Kahramanmaraş,Kırıkkale,Kırşehir", "email": "GRUP_14@gmail.com"}
+]
+
+# Grupları yükle
+def load_groups():
+    if GROUPS_FILE.exists():
+        try:
+            with open(GROUPS_FILE, 'r', encoding='utf-8') as f:
+                return json.load(f)
+        except (json.JSONDecodeError, FileNotFoundError):
+            return DEFAULT_GROUPS
+    return DEFAULT_GROUPS
+
+def save_groups(groups_data):
+    with open(GROUPS_FILE, 'w', encoding='utf-8') as f:
+        json.dump(groups_data, f, ensure_ascii=False, indent=2)
+
+# Grupları başlat
+groups = load_groups()
 
 # Turkish city list
 TURKISH_CITIES = [
