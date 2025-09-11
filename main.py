@@ -18,9 +18,14 @@ from config import (
 from utils.handler_loader import setup_handlers
 
 # Logging configuration
+# Logging configuration - DAHA DETAYLI LOG
 logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    level=logging.DEBUG,  # INFO yerine DEBUG
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.FileHandler("bot_debug.log", encoding='utf-8'),
+        logging.StreamHandler()
+    ]
 )
 logger = logging.getLogger(__name__)
 
