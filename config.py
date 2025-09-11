@@ -49,19 +49,27 @@ DEFAULT_GROUPS = [
 ]
 
 # Grupları yükle
+# config.py - load_groups fonksiyonunu güncelleyelim
 def load_groups():
-    if GROUPS_FILE.exists():
-        try:
+    try:
+        if GROUPS_FILE.exists():
             with open(GROUPS_FILE, 'r', encoding='utf-8') as f:
                 loaded_groups = json.load(f)
                 # Eski yapıyı yeni yapıya dönüştür
                 return convert_old_groups(loaded_groups)
-        except (json.JSONDecodeError, FileNotFoundError) as e:
-            print(f"Groups file error: {e}, loading default groups")
+        else:
+            # Dosya yoksa, varsayılan grupları kaydet ve döndür
+            print("groups.json dosyası oluşturuluyor...")
+            save_groups(DEFAULT_GROUPS)
+            print(f"{len(DEFAULT_GROUPS)} grup kaydedildi.")
             return DEFAULT_GROUPS
-    else:
-        # Dosya yoksa, varsayılan grupları kaydet ve döndür
-        save_groups(DEFAULT_GROUPS)
+    except (json.JSONDecodeError, FileNotFoundError, Exception) as e:
+        print(f"Groups file error: {e}, loading default groups")
+        # Hata durumunda da dosyayı oluşturmaya çalış
+        try:
+            save_groups(DEFAULT_GROUPS)
+        except Exception as save_error:
+            print(f"Backup save error: {save_error}")
         return DEFAULT_GROUPS
 
 def convert_old_groups(old_groups):
