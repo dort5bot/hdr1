@@ -1,5 +1,6 @@
 import os
 from dotenv import load_dotenv
+import json
 
 load_dotenv()
 
@@ -20,6 +21,14 @@ MAIL_BEN = os.getenv("MAIL_BEN")
 MAIL_PASSWORD = os.getenv("MAIL_PASSWORD")
 ADMIN_IDS = [int(id.strip()) for id in os.getenv("ADMIN_IDS", "").split(",") if id.strip()]
 
+# Grup yapılandırması - JSON formatında
+GROUPS_CONFIG = os.getenv("GROUPS_CONFIG", "[]")
+try:
+    groups = json.loads(GROUPS_CONFIG)
+except json.JSONDecodeError:
+    groups = []
+    print("Gruplar JSON formatında olmalıdır!")
+
 # Turkish city list
 TURKISH_CITIES = [
     "Adana", "Adıyaman", "Afyonkarahisar", "Ağrı", "Aksaray", "Amasya", "Ankara", 
@@ -38,7 +47,6 @@ TURKISH_CITIES = [
 
 # Data storage
 source_emails = []
-groups = []
 processed_mail_ids = set()
 
 # Initialize data from environment
@@ -54,3 +62,9 @@ if MAIL_K4:
 # Temp directory
 TEMP_DIR = os.path.join(os.getcwd(), "temp")
 os.makedirs(TEMP_DIR, exist_ok=True)
+
+# IMAP ve SMTP ayarları
+IMAP_SERVER = os.getenv("IMAP_SERVER", "imap.gmail.com")
+IMAP_PORT = int(os.getenv("IMAP_PORT", "993"))
+SMTP_SERVER = os.getenv("SMTP_SERVER", "smtp.gmail.com")
+SMTP_PORT = int(os.getenv("SMTP_PORT", "587"))
