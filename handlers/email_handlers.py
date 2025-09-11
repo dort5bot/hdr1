@@ -31,6 +31,7 @@ async def cmd_checkmail(message: Message):
 
 # process komutunu güncelleyin:
 # handlers/email_handlers.py - process komutunu düzeltelim
+# handlers/email_handlers.py - process komutunu güncelleyelim
 @router.message(Command("process"))
 async def cmd_process(message: Message):
     """Excel dosyalarını işleme komutu"""
@@ -50,10 +51,13 @@ async def cmd_process(message: Message):
         
         # Create and send group Excel files
         sent_groups = []
+        failed_groups = []
+        
         for group_no, filepaths in group_results.items():
             # Find group email
             group_info = next((g for g in groups if g["no"] == group_no), None)
-            if not group_info:
+            if not group_info or not group_info.get("email"):
+                failed_groups.append(f"{group_no} (email yok)")
                 continue
                 
             group_email = group_info["email"]
@@ -61,24 +65,38 @@ async def cmd_process(message: Message):
             
             # Create group Excel
             group_filepath = await create_group_excel(group_no, filepaths)
-            if group_filepath:
-                # Send email with attachment
-                now = datetime.datetime.now()
-                subject = f"{group_no} - {group_name} Grubu Verileri - {now.strftime('%d/%m/%Y %H:%M')}"
-                body = f"{group_name} grubu için Excel dosyası ekte gönderilmiştir.\n\nToplam {len(filepaths)} dosya işlenmiştir."
-                
-                success = await send_email(group_email, subject, body, group_filepath)
-                if success:
-                    sent_groups.append(f"{group_no} - {group_name}")
+            if not group_filepath:
+                failed_groups.append(f"{group_no} (Excel oluşturulamadı)")
+                continue
+            
+            # Send email with attachment
+            now = datetime.datetime.now()
+            subject = f"{group_no} - {group_name} Grubu Verileri - {now.strftime('%d/%m/%Y %H:%M')}"
+            body = f"{group_name} grubu için Excel dosyası ekte gönderilmiştir.\n\nToplam {len(filepaths)} dosya işlenmiştir."
+            
+            success = await send_email(group_email, subject, body, group_filepath)
+            if success:
+                sent_groups.append(f"{group_no} - {group_name}")
+            else:
+                failed_groups.append(f"{group_no} (mail gönderilemedi)")
         
         # Send report
+        response = ""
         if sent_groups:
-            response = "✅ **Mail gönderildi:**\n\n"
+            response += "✅ **Mail gönderildi:**\n"
             for i, group_info in enumerate(sent_groups, 1):
                 response += f"{i}. {group_info}\n"
-            await processing_msg.edit_text(response)
-        else:
-            await processing_msg.edit_text("❌ Hiçbir gruba mail gönderilemedi.")
+            response += "\n"
+        
+        if failed_groups:
+            response += "❌ **Hatalı gruplar:**\n"
+            for i, group_info in enumerate(failed_groups, 1):
+                response += f"{i}. {group_info}\n"
+        
+        if not sent_groups and not failed_groups:
+            response = "⚠️ **Hiçbir işlem yapılamadı**"
+        
+        await processing_msg.edit_text(response)
             
     except Exception as e:
         logger.error(f"Process command error: {e}")
