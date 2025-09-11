@@ -1,13 +1,19 @@
-from aiogram import Router
+from aiogram import Router, types
 from aiogram.filters import Command
 from aiogram.types import Message
 import logging
 from config import source_emails, groups, ADMIN_IDS
 from utils import email_utils, excel_processor, file_utils
 import datetime
+import time
+import psutil
+import os
 
 router = Router()
 logger = logging.getLogger(__name__)
+
+# Bot başlangıç zamanı
+BOT_START_TIME = time.time()
 
 @router.message(Command("start"))
 async def cmd_start(message: Message):
@@ -28,8 +34,78 @@ async def cmd_start(message: Message):
         "/process - Sadece Excel işleme yapar (mail kontrolü yapmaz)\n"
         "/cleanup - Temp klasörünü manuel temizler\n"
         "/stats - Bot istatistiklerini gösterir\n"
-        "/proc - Excel dosyalarını işler"
+        "/proc - Excel dosyalarını işler\n"
+        "/health - Bot sağlık durumunu kontrol eder\n"
+        "/ping - Bot yanıt süresini test eder\n"
+        "/status - Sistem durumunu gösterir"
     )
+
+@router.message(Command("health"))
+async def health_check(message: types.Message):
+    """Bot sağlık durumunu kontrol eder"""
+    if message.from_user.id not in ADMIN_IDS:
+        await message.answer("Bu botu kullanma yetkiniz yok.")
+        return
+        
+    try:
+        # Basit bir health check
+        await message.answer("✅ Bot çalışıyor ve sağlıklı!")
+        
+    except Exception as e:
+        await message.answer(f"❌ Health check hatası: {str(e)}")
+
+@router.message(Command("ping"))
+async def ping(message: types.Message):
+    """Bot yanıt süresini test eder"""
+    if message.from_user.id not in ADMIN_IDS:
+        await message.answer("Bu botu kullanma yetkiniz yok.")
+        return
+        
+    start_time = time.time()
+    pong_message = await message.answer("🏓 Pong!")
+    end_time = time.time()
+    
+    response_time = round((end_time - start_time) * 1000, 2)
+    await pong_message.edit_text(f"🏓 Pong! Yanıt süresi: {response_time}ms")
+
+@router.message(Command("status"))
+async def status_check(message: types.Message):
+    """Sistem durumunu gösterir"""
+    if message.from_user.id not in ADMIN_IDS:
+        await message.answer("Bu botu kullanma yetkiniz yok.")
+        return
+        
+    try:
+        # Sistem bilgileri
+        uptime = time.time() - BOT_START_TIME
+        hours, remainder = divmod(uptime, 3600)
+        minutes, seconds = divmod(remainder, 60)
+        
+        # CPU ve memory kullanımı
+        cpu_percent = psutil.cpu_percent()
+        memory = psutil.virtual_memory()
+        disk = psutil.disk_usage('/')
+        
+        # Process bilgileri
+        process = psutil.Process(os.getpid())
+        memory_usage = process.memory_info().rss / 1024 / 1024  # MB cinsinden
+        
+        status_message = (
+            "📊 **Sistem Durumu**\n\n"
+            f"⏰ **Çalışma Süresi:** {int(hours)}sa {int(minutes)}dk {int(seconds)}sn\n"
+            f"🖥️ **CPU Kullanımı:** {cpu_percent}%\n"
+            f"💾 **Bellek Kullanımı:** {memory.percent}%\n"
+            f"📦 **Disk Kullanımı:** {disk.percent}%\n"
+            f"🤖 **Bot Bellek:** {memory_usage:.2f} MB\n"
+            f"📧 **Kaynak Mailler:** {len(source_emails)}\n"
+            f"👥 **Gruplar:** {len(groups)}\n"
+            f"👑 **Adminler:** {len(ADMIN_IDS)}"
+        )
+        
+        await message.answer(status_message)
+        
+    except Exception as e:
+        await message.answer(f"❌ Status check hatası: {str(e)}")
 
 @router.message(Command("kay"))
 async def cmd_kay(message: Message):
@@ -41,9 +117,9 @@ async def cmd_kay(message: Message):
         await message.answer("Kaynak mail adresi bulunamadı.")
         return
         
-    response = "Kaynak Mail Adresleri:\n\n"
+    response = "📧 **Kaynak Mail Adresleri:**\n\n"
     for i, email in enumerate(source_emails, 1):
-        response += f"{i}. {email}\n"
+        response += f"{i}. `{email}`\n"
         
     await message.answer(response)
 
@@ -60,11 +136,11 @@ async def cmd_kayek(message: Message):
         
     new_email = parts[1]
     if new_email in source_emails:
-        await message.answer(f"{new_email} zaten kayıtlı.")
+        await message.answer(f"❌ `{new_email}` zaten kayıtlı.")
         return
         
     source_emails.append(new_email)
-    await message.answer(f"{new_email} kaynak mail olarak eklendi.")
+    await message.answer(f"✅ `{new_email}` kaynak mail olarak eklendi.")
 
 @router.message(Command("kaysil"))
 async def cmd_kaysil(message: Message):
@@ -80,13 +156,13 @@ async def cmd_kaysil(message: Message):
     try:
         index = int(parts[1]) - 1
         if index < 0 or index >= len(source_emails):
-            await message.answer("Geçersiz sıra numarası.")
+            await message.answer("❌ Geçersiz sıra numarası.")
             return
             
         removed_email = source_emails.pop(index)
-        await message.answer(f"{removed_email} kaynak mail olarak silindi.")
+        await message.answer(f"✅ `{removed_email}` kaynak mail olarak silindi.")
     except ValueError:
-        await message.answer("Geçersiz sıra numarası.")
+        await message.answer("❌ Geçersiz sıra numarası.")
 
 @router.message(Command("gr"))
 async def cmd_gr(message: Message):
@@ -95,13 +171,15 @@ async def cmd_gr(message: Message):
         return
         
     if not groups:
-        await message.answer("Grup bulunamadı.")
+        await message.answer("❌ Grup bulunamadı.")
         return
         
-    response = "Gruplar:\n\n"
+    response = "👥 **Gruplar:**\n\n"
     for i, group in enumerate(groups, 1):
         cities = ", ".join(group["cities"])
-        response += f"{i}. {group['name']} - {cities} - {group['email']}\n"
+        response += f"{i}. **{group['name']}**\n"
+        response += f"   📍 Şehirler: {cities}\n"
+        response += f"   📧 Email: `{group['email']}`\n\n"
         
     await message.answer(response)
 
@@ -126,7 +204,7 @@ async def cmd_grek(message: Message):
         if group["name"].lower() == group_name.lower():
             groups[i]["cities"] = cities
             groups[i]["email"] = group_email
-            await message.answer(f"{group_name} grubu güncellendi.")
+            await message.answer(f"✅ `{group_name}` grubu güncellendi.")
             return
     
     # Add new group
@@ -135,7 +213,7 @@ async def cmd_grek(message: Message):
         "cities": cities,
         "email": group_email
     })
-    await message.answer(f"{group_name} grubu eklendi.")
+    await message.answer(f"✅ `{group_name}` grubu eklendi.")
 
 @router.message(Command("grsil"))
 async def cmd_grsil(message: Message):
@@ -151,13 +229,13 @@ async def cmd_grsil(message: Message):
     try:
         index = int(parts[1]) - 1
         if index < 0 or index >= len(groups):
-            await message.answer("Geçersiz sıra numarası.")
+            await message.answer("❌ Geçersiz sıra numarası.")
             return
             
         removed_group = groups.pop(index)
-        await message.answer(f"{removed_group['name']} grubu silindi.")
+        await message.answer(f"✅ `{removed_group['name']}` grubu silindi.")
     except ValueError:
-        await message.answer("Geçersiz sıra numarası.")
+        await message.answer("❌ Geçersiz sıra numarası.")
 
 @router.message(Command("proc"))
 async def cmd_proc(message: Message):
@@ -165,53 +243,88 @@ async def cmd_proc(message: Message):
         await message.answer("Bu botu kullanma yetkiniz yok.")
         return
         
-    await message.answer("Excel dosyaları işleniyor...")
+    processing_msg = await message.answer("⏳ Excel dosyaları işleniyor...")
     
-    # Check for new emails
-    new_files = await email_utils.check_email()
-    if new_files:
-        await message.answer(f"{len(new_files)} yeni Excel dosyası bulundu.")
-    
-    # Process Excel files
-    group_results = await excel_processor.process_excel_files()
-    
-    if not group_results:
-        await message.answer("İşlenecek veri bulunamadı.")
-        return
-    
-    # Create and send group Excel files
-    sent_groups = []
-    for group_name, filepaths in group_results.items():
-        # Find group email
-        group_email = None
-        for group in groups:
-            if group["name"] == group_name:
-                group_email = group["email"]
-                break
+    try:
+        # Check for new emails
+        new_files = await email_utils.check_email()
+        if new_files:
+            await message.answer(f"📥 {len(new_files)} yeni Excel dosyası bulundu.")
         
-        if not group_email:
-            continue
+        # Process Excel files
+        group_results = await excel_processor.process_excel_files()
+        
+        if not group_results:
+            await processing_msg.edit_text("❌ İşlenecek veri bulunamadı.")
+            return
+        
+        # Create and send group Excel files
+        sent_groups = []
+        for group_name, filepaths in group_results.items():
+            # Find group email
+            group_email = None
+            for group in groups:
+                if group["name"] == group_name:
+                    group_email = group["email"]
+                    break
             
-        # Create group Excel
-        group_filepath = await excel_processor.create_group_excel(group_name, filepaths)
-        if group_filepath:
-            # Send email with attachment
-            now = datetime.datetime.now()
-            subject = f"{group_name} Grubu Verileri - {now.strftime('%d/%m/%Y %H:%M')}"
-            body = f"{group_name} grubu için Excel dosyası ekte gönderilmiştir."
+            if not group_email:
+                continue
+                
+            # Create group Excel
+            group_filepath = await excel_processor.create_group_excel(group_name, filepaths)
+            if group_filepath:
+                # Send email with attachment
+                now = datetime.datetime.now()
+                subject = f"{group_name} Grubu Verileri - {now.strftime('%d/%m/%Y %H:%M')}"
+                body = f"{group_name} grubu için Excel dosyası ekte gönderilmiştir."
+                
+                success = await email_utils.send_email(group_email, subject, body, group_filepath)
+                if success:
+                    sent_groups.append(group_name)
+        
+        # Send report
+        if sent_groups:
+            response = "✅ **Mail gönderildi:**\n\n"
+            for i, group_name in enumerate(sent_groups, 1):
+                response += f"{i}. {group_name}\n"
+            await processing_msg.edit_text(response)
+        else:
+            await processing_msg.edit_text("❌ Hiçbir gruba mail gönderilemedi.")
             
-            success = await email_utils.send_email(group_email, subject, body, group_filepath)
-            if success:
-                sent_groups.append(group_name)
-    
-    # Send report
-    if sent_groups:
-        response = "Mail gönderildi:\n"
-        for i, group_name in enumerate(sent_groups, 1):
-            response += f"{i}. {group_name}\n"
-        await message.answer(response)
-    else:
-        await message.answer("Hiçbir gruba mail gönderilemedi.")
+    except Exception as e:
+        logger.error(f"Proc command error: {e}")
+        await processing_msg.edit_text(f"❌ İşlem sırasında hata oluştu: {str(e)}")
+
+@router.message(Command("stats"))
+async def cmd_stats(message: Message):
+    """Bot istatistiklerini gösterir"""
+    if message.from_user.id not in ADMIN_IDS:
+        await message.answer("Bu botu kullanma yetkiniz yok.")
+        return
+        
+    try:
+        # Temp klasörü boyutu
+        temp_size = 0
+        for path, dirs, files in os.walk(file_utils.TEMP_DIR):
+            for f in files:
+                fp = os.path.join(path, f)
+                temp_size += os.path.getsize(fp)
+        temp_size_mb = temp_size / (1024 * 1024)
+        
+        stats_message = (
+            "📊 **Bot İstatistikleri**\n\n"
+            f"📧 **Kaynak Mailler:** {len(source_emails)}\n"
+            f"👥 **Aktif Gruplar:** {len(groups)}\n"
+            f"📁 **Temp Klasör Boyutu:** {temp_size_mb:.2f} MB\n"
+            f"⏰ **Bot Çalışma Süresi:** {int(time.time() - BOT_START_TIME)} saniye\n"
+            f"🤖 **Admin Sayısı:** {len(ADMIN_IDS)}"
+        )
+        
+        await message.answer(stats_message)
+        
+    except Exception as e:
+        await message.answer(f"❌ İstatistikler alınamadı: {str(e)}")
 
 # Handler loader compatibility
 async def register_handlers(router_instance: Router):
