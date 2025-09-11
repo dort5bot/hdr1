@@ -1,16 +1,20 @@
 #handlers/commands.py
+# handlers/commands.py - EN BAŞA importları ekleyelim
+import pandas as pd  # EKLENDİ
+from utils.excel_processor import normalize_text  # EKLENDİ
+import asyncio
+import logging
+import os
+import time
+import psutil
+import json
+from dotenv import load_dotenv
 from aiogram import Router, types
 from aiogram.filters import Command
 from aiogram.types import Message
-import logging
 from config import source_emails, groups, ADMIN_IDS
 from utils import email_utils, excel_processor, file_utils
 import datetime
-import time
-import psutil
-import os
-import json
-from dotenv import load_dotenv
 
 router = Router()
 logger = logging.getLogger(__name__)
