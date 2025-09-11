@@ -7,6 +7,8 @@ load_dotenv()
 TELEGRAM_BOT = os.getenv("TELEGRAM_BOT")
 MAIL_K1 = os.getenv("MAIL_K1")
 MAIL_K2 = os.getenv("MAIL_K2")
+MAIL_K3 = os.getenv("MAIL_K3")
+MAIL_K4 = os.getenv("MAIL_K4")
 MAIL_BEN = os.getenv("MAIL_BEN")
 MAIL_PASSWORD = os.getenv("MAIL_PASSWORD")
 ADMIN_IDS = [int(id.strip()) for id in os.getenv("ADMIN_IDS", "").split(",") if id.strip()]
@@ -37,6 +39,10 @@ if MAIL_K1:
     source_emails.append(MAIL_K1)
 if MAIL_K2:
     source_emails.append(MAIL_K2)
+if MAIL_K3:
+    source_emails.append(MAIL_K3)
+if MAIL_K4:
+    source_emails.append(MAIL_K4)
 
 # Temp directory
 TEMP_DIR = os.path.join(os.getcwd(), "temp")
