@@ -85,11 +85,11 @@ async def check_email() -> list:
     
     return new_files
 
-# Diğer fonksiyonlar aynı kalacak...
-
 async def send_email(to_email: str, subject: str, body: str, attachment_path: str = None) -> bool:
     """Send email with attachment using SMTP"""
     try:
+        logger.info(f"Mail gönderiliyor: {to_email}, Konu: {subject}")
+        
         # Email message
         msg = MIMEMultipart()
         msg['From'] = os.getenv("MAIL_BEN")
@@ -101,16 +101,21 @@ async def send_email(to_email: str, subject: str, body: str, attachment_path: st
         
         # Attachment
         if attachment_path and os.path.exists(attachment_path):
+            logger.info(f"Ek dosya eklenecek: {attachment_path}")
             with open(attachment_path, "rb") as f:
                 part = MIMEApplication(f.read(), Name=os.path.basename(attachment_path))
             part['Content-Disposition'] = f'attachment; filename="{os.path.basename(attachment_path)}"'
             msg.attach(part)
+        else:
+            logger.warning("Ek dosya bulunamadı veya belirtilmedi")
         
         # SMTP settings
         smtp_server = os.getenv("SMTP_SERVER", "smtp.gmail.com")
         smtp_port = int(os.getenv("SMTP_PORT", 587))
         username = os.getenv("MAIL_BEN")
         password = os.getenv("MAIL_PASSWORD")
+        
+        logger.info(f"SMTP bağlantısı: {smtp_server}:{smtp_port}")
         
         # Send email
         async with aiosmtplib.SMTP(hostname=smtp_server, port=smtp_port) as smtp:
@@ -119,9 +124,9 @@ async def send_email(to_email: str, subject: str, body: str, attachment_path: st
             await smtp.login(username, password)
             await smtp.send_message(msg)
         
-        logger.info(f"Email successfully sent to: {to_email}")
+        logger.info(f"Mail başarıyla gönderildi: {to_email}")
         return True
         
     except Exception as e:
-        logger.error(f"Email sending error: {e}")
+        logger.error(f"Mail gönderme hatası: {e}")
         return False
