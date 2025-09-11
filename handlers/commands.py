@@ -50,8 +50,94 @@ async def cmd_start(message: Message):
         "/files - Temp dosyalarını listele\n"
         "/testmail - Test maili gönder\n"
         "/testexcel - Excel işleme testi"
+        "/normalize_test - Normalizasyon testi yap: \n"
+        "/detayli_test - Detaylı test yap: \n"
+        "/testexcel - Excel işlemeyi dene: \n"
     )
 
+# handlers/commands.py'e yeni komutlar ekleyelim
+@router.message(Command("detayli_test"))
+async def cmd_detayli_test(message: Message):
+    """Detaylı Excel testi yapar"""
+    if message.from_user.id not in ADMIN_IDS:
+        await message.answer("Bu botu kullanma yetkiniz yok.")
+        return
+        
+    try:
+        # Tüm Excel dosyalarını tek tek test et
+        excel_files = [f for f in os.listdir(TEMP_DIR) if f.lower().endswith(('.xlsx', '.xls'))]
+        
+        if not excel_files:
+            await message.answer("❌ Test edilecek Excel dosyası yok.")
+            return
+        
+        response = "🔍 **Detaylı Excel Testi:**\n\n"
+        
+        for filename in excel_files:
+            filepath = os.path.join(TEMP_DIR, filename)
+            df = pd.read_excel(filepath)
+            
+            response += f"📊 **{filename}**\n"
+            response += f"   Sütunlar: {list(df.columns)}\n"
+            
+            # Şehir sütunu ara
+            city_column = None
+            for col in df.columns:
+                col_normalized = normalize_text(col)
+                if any(keyword in col_normalized for keyword in ['SEHIR', 'CITY', 'IL']):
+                    city_column = col
+                    break
+            
+            if city_column:
+                response += f"   ✅ Şehir sütunu: {city_column}\n"
+                
+                # İlk 5 şehir değerini göster
+                sehirler = []
+                for i in range(min(5, len(df))):
+                    city_val = df.iloc[i][city_column]
+                    if pd.notna(city_val):
+                        sehirler.append(str(city_val))
+                response += f"   Örnek değerler: {sehirler}\n"
+            else:
+                response += f"   ❌ Şehir sütunu bulunamadı\n"
+            
+            response += "\n"
+        
+        await message.answer(response[:4000])
+        
+    except Exception as e:
+        logger.error(f"Detaylı test hatası: {e}")
+        await message.answer(f"❌ Detaylı test hatası: {str(e)}")
+
+@router.message(Command("normalize_test"))
+async def cmd_normalize_test(message: Message):
+    """Büyük-küçük harf normalizasyon testi"""
+    if message.from_user.id not in ADMIN_IDS:
+        await message.answer("Bu botu kullanma yetkiniz yok.")
+        return
+        
+    try:
+        # Test için örnek değerler
+        test_values = ["AFYON", "Afyon", "afyon", "İSTANBUL", "istanbul", "Istanbul"]
+        
+        response = "🔠 **Normalizasyon Testi:**\n\n"
+        
+        for value in test_values:
+            normalized = normalize_text(value)
+            response += f"'{value}' -> '{normalized}'\n"
+        
+        # Grup illerinden örnekler
+        response += "\n**Grup İlleri (Normalize):**\n"
+        for group in groups[:3]:  # İlk 3 grup
+            iller_normalized = [normalize_text(il) for il in group["iller"].split(",")]
+            response += f"{group['no']}: {iller_normalized[:3]}...\n"
+        
+        await message.answer(response)
+        
+    except Exception as e:
+        logger.error(f"Normalizasyon test hatası: {e}")
+        await message.answer(f"❌ Normalizasyon test hatası: {str(e)}")
+        
 @router.message(Command("health"))
 async def health_check(message: types.Message):
     """Bot sağlık durumunu kontrol eder"""
