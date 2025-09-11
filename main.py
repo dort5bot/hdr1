@@ -1,6 +1,8 @@
+#main.py
 import asyncio
 import logging
 import os
+import sys    #e1
 from aiogram import Bot, Dispatcher
 from aiogram.webhook.aiohttp_server import SimpleRequestHandler, setup_application
 from aiohttp import web
@@ -16,6 +18,8 @@ from config import (
     WEBHOOK_PORT,
 )
 from utils.handler_loader import setup_handlers
+
+sys.path.append(os.path.abspath(os.path.dirname(__file__)))    #e2
 
 # Logging configuration
 # Logging configuration - DAHA DETAYLI LOG
