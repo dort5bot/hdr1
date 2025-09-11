@@ -1,9 +1,10 @@
-from aiogram import Router, types
+from aiogram import Router
 from aiogram.filters import Command
 from aiogram.types import Message
 import logging
 from config import source_emails, groups, ADMIN_IDS
 from utils import email_utils, excel_processor, file_utils
+import datetime
 
 router = Router()
 logger = logging.getLogger(__name__)
@@ -211,3 +212,8 @@ async def cmd_proc(message: Message):
         await message.answer(response)
     else:
         await message.answer("Hiçbir gruba mail gönderilemedi.")
+
+# Handler loader compatibility
+async def register_handlers(router_instance: Router):
+    """Register handlers with the router - required for handler_loader"""
+    router_instance.include_router(router)
