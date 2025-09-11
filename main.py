@@ -38,9 +38,15 @@ async def on_startup():
     logger.info(f"{loaded} handler(s) loaded successfully")
 
     # Set webhook if using webhook mode
+    # Set webhook if using webhook mode
     if USE_WEBHOOK:
-        #await bot.set_webhook(f"{WEBHOOK_URL}{WEBHOOK_PATH}")
-        await bot.set_webhook(f"{WEBHOOK_URL}{WEBHOOK_PATH}/{TELEGRAM_BOT}")
+        path = f"{WEBHOOK_PATH}/{TELEGRAM_BOT}"
+    
+        # server hangi path'i dinleyecek
+        webhook_requests_handler.register(app, path=path)
+    
+        # Telegram'a hangi URL'yi set edecek
+        await bot.set_webhook(f"{WEBHOOK_URL}{path}")
         logger.info("Webhook set successfully")
 
     # Send startup message to admins
