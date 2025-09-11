@@ -18,20 +18,22 @@ from config import (
 from utils.handler_loader import setup_handlers
 
 # Logging configuration
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
 logger = logging.getLogger(__name__)
 
 # Initialize bot and dispatcher
 bot = Bot(token=TELEGRAM_BOT)
 dp = Dispatcher()
 
-
 async def on_startup():
     """Run on bot startup"""
     os.makedirs(TEMP_DIR, exist_ok=True)
 
     # Start scheduler
-    asyncio.create_task(scheduler())
+    asyncio.create_task(scheduler(bot))  # Bot parametresi eklendi
 
     # Load all handlers automatically
     loaded = await setup_handlers(dp, "handlers")
@@ -48,16 +50,15 @@ async def on_startup():
         try:
             await bot.send_message(admin_id, "✅ HIDIR Botu başlatıldı.")
         except Exception as e:
-            logger.error(f"Admin mesajı gönderilemedi: {e}")
-
+            logger.error(f"Admin mesajı gönderilemedi ({admin_id}): {e}")
 
 async def on_shutdown():
     """Run on bot shutdown"""
+    logger.info("Shutting down bot...")
     if USE_WEBHOOK:
         await bot.delete_webhook()
     await bot.session.close()
     logger.info("Bot shutdown completed")
-
 
 async def main_webhook():
     """Webhook mode"""
@@ -76,10 +77,18 @@ async def main_webhook():
     setup_application(app, dp, bot=bot)
 
     try:
-        await web._run_app(app, host=WEBHOOK_HOST, port=WEBHOOK_PORT)
+        runner = web.AppRunner(app)
+        await runner.setup()
+        site = web.TCPSite(runner, host=WEBHOOK_HOST, port=WEBHOOK_PORT)
+        await site.start()
+        logger.info(f"Webhook server started on {WEBHOOK_HOST}:{WEBHOOK_PORT}")
+        
+        # Keep the server running
+        await asyncio.Event().wait()
     except Exception as e:
         logger.error(f"Webhook server error: {e}")
-
+    finally:
+        await runner.cleanup()
 
 async def main_polling():
     """Polling mode"""
@@ -90,7 +99,8 @@ async def main_polling():
         await dp.start_polling(bot)
     except Exception as e:
         logger.error(f"Polling error: {e}")
-
+    finally:
+        await bot.session.close()
 
 async def main():
     """Main function"""
@@ -101,9 +111,10 @@ async def main():
         logger.info("Starting in POLLING mode")
         await main_polling()
 
-
 if __name__ == "__main__":
     try:
         asyncio.run(main())
     except KeyboardInterrupt:
         logger.info("Bot manually stopped")
+    except Exception as e:
+        logger.error(f"Unexpected error: {e}")
