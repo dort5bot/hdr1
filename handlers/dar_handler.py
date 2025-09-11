@@ -22,25 +22,27 @@ TELEGRAM_NAME: str = os.getenv("TELEGRAM_NAME", "xbot")
 # Constants
 ROOT_DIR = Path(".").resolve()
 TELEGRAM_MSG_LIMIT = 4000
+MAX_FILE_SIZE = 50 * 1024 * 1024  # 50 MB limit for uploads
 HANDLERS_DIR = ROOT_DIR / "handlers"
 CACHE_DURATION = 30  # 30 saniye önbellekleme
 
 LOG: logging.Logger = logging.getLogger(__name__)
+logging.basicConfig(level=logging.INFO)
 
 # COMMAND INFO
 COMMAND_INFO: Dict[str, str] = {
     "dar": "/dar: Dosya tree, /dar k: komut listesi, /dar z:repo zip, /dar t: tüm içerik txt",
-    "/kay" : " Kaynak mail adreslerini listeler"	,
-    "/kayek" : " Kaynak mail adresi ekler"	,
-    "/kaysil" : " Kaynak mail adresi siler"	,
-    "/gr" : " Grupları listeler"	,
-    "/grek" : " Yeni grup ekler"	,
-    "/grsil" : " Grup siler"	,
-    "/checkmail" : " Manuel olarak mail kontrolü yapar"	,
-    "/process" : " Sadece Excel işleme yapar (mail kontrolü yapmaz)"	,
-    "/cleanup" : " Temp klasörünü manuel temizler"	,
-    "/stats" : " Bot istatistiklerini gösterir"	,
-    "/proc" : " Excel dosyalarını işler"	,
+    "/kay" : " Kaynak mail adreslerini listeler",
+    "/kayek" : " Kaynak mail adresi ekler",
+    "/kaysil" : " Kaynak mail adresi siler",
+    "/gr" : " Grupları listeler",
+    "/grek" : " Yeni grup ekler",
+    "/grsil" : " Grup siler",
+    "/checkmail" : " Manuel olarak mail kontrolü yapar",
+    "/process" : " Sadece Excel işleme yapar (mail kontrolü yapmaz)",
+    "/cleanup" : " Temp klasörünü manuel temizler",
+    "/stats" : " Bot istatistiklerini gösterir",
+    "/proc" : " Excel dosyalarını işler",
     "komut": "tınak_içi_açıklama_ sonrasında VİRGÜL",
 }
 
@@ -147,8 +149,8 @@ class DarService:
             for fpath in valid_files:
                 try:
                     zipf.write(fpath, fpath.relative_to(self.root_dir))
-                except Exception:
-                    continue
+                except Exception as e:
+                    LOG.warning(f"Zip eklenemedi {fpath}: {e}")
             for extra in [".env", ".gitignore"]:
                 extra_path = self.root_dir / extra
                 if extra_path.exists():
@@ -162,7 +164,8 @@ class DarService:
             for fpath in valid_files:
                 try:
                     content = fpath.read_text(encoding="utf-8")
-                except Exception:
+                except Exception as e:
+                    LOG.warning(f"{fpath} okunamadı: {e}")
                     continue
                 f.write(f"\n\n{'='*50}\n{fpath}\n{'='*50}\n\n")
                 f.write(content)
@@ -188,6 +191,7 @@ async def handle_dar_command(message: Message) -> None:
     try:
         tree_text, valid_files = service.format_tree()
 
+        # /dar k - komut listesi
         if mode == "k":
             scanned = await service.scan_handlers_for_commands(force_refresh=force_refresh)
             if not scanned:
@@ -199,24 +203,44 @@ async def handle_dar_command(message: Message) -> None:
                 timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
                 txt_filename = Path(f"{TELEGRAM_NAME}_commands_{timestamp}.txt")
                 txt_filename.write_text(text, encoding="utf-8")
-                await message.answer_document(document=txt_filename.open("rb"), filename=txt_filename.name)
-                txt_filename.unlink(missing_ok=True)
+                try:
+                    with txt_filename.open("rb") as file:
+                        await message.answer_document(document=file, filename=txt_filename.name)
+                finally:
+                    txt_filename.unlink(missing_ok=True)
             else:
                 await message.answer(f"<pre>{text}</pre>", parse_mode="HTML")
             return
 
+        # /dar z - zip gönder
         if mode == "z":
             zip_path = service.create_zip(tree_text, valid_files)
-            await message.answer_document(document=zip_path.open("rb"), filename=zip_path.name)
-            zip_path.unlink(missing_ok=True)
+            if zip_path.stat().st_size > MAX_FILE_SIZE:
+                await message.answer("⚠️ Zip dosyası çok büyük, gönderilemiyor.")
+                zip_path.unlink(missing_ok=True)
+                return
+            try:
+                with zip_path.open("rb") as file:
+                    await message.answer_document(document=file, filename=zip_path.name)
+            finally:
+                zip_path.unlink(missing_ok=True)
             return
 
+        # /dar t - tüm dosyaları txt gönder
         if mode == "t":
             txt_path = service.create_all_txt(valid_files)
-            await message.answer_document(document=txt_path.open("rb"), filename=txt_path.name)
-            txt_path.unlink(missing_ok=True)
+            if txt_path.stat().st_size > MAX_FILE_SIZE:
+                await message.answer("⚠️ Dosya çok büyük, gönderilemiyor.")
+                txt_path.unlink(missing_ok=True)
+                return
+            try:
+                with txt_path.open("rb") as file:
+                    await message.answer_document(document=file, filename=txt_path.name)
+            finally:
+                txt_path.unlink(missing_ok=True)
             return
 
+        # /dar f - cache temizle
         if mode == "f":
             await service.clear_cache()
             await message.answer("✅ Önbellek temizlendi. Tekrar deneyin.")
@@ -227,8 +251,11 @@ async def handle_dar_command(message: Message) -> None:
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
             txt_filename = Path(f"{TELEGRAM_NAME}_tree_{timestamp}.txt")
             txt_filename.write_text(tree_text, encoding="utf-8")
-            await message.answer_document(document=txt_filename.open("rb"), filename=txt_filename.name)
-            txt_filename.unlink(missing_ok=True)
+            try:
+                with txt_filename.open("rb") as file:
+                    await message.answer_document(document=file, filename=txt_filename.name)
+            finally:
+                txt_filename.unlink(missing_ok=True)
         else:
             await message.answer(f"<pre>{tree_text}</pre>", parse_mode="HTML")
 
