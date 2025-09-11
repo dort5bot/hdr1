@@ -176,22 +176,23 @@ async def cmd_kaysil(message: Message):
     except ValueError:
         await message.answer("❌ Geçersiz sıra numarası.")
 
-@router.message(Command("gr"))
-async def cmd_gr(message: Message):
+# handlers/commands.py - grupları gösteren komutu düzeltelim
+@router.message(Command("gruplar", "gr"))
+async def cmd_gruplar(message: Message):
+    """Tüm grupları listeler (/gruplar ve /gr)"""
     if message.from_user.id not in ADMIN_IDS:
         await message.answer("Bu botu kullanma yetkiniz yok.")
         return
         
     if not groups:
-        await message.answer("❌ Grup bulunamadı.")
+        await message.answer("❌ Hiç grup bulunamadı.")
         return
         
-    response = "👥 **Gruplar:**\n\n"
-    for i, group in enumerate(groups, 1):
-        cities = ", ".join(group["cities"])
-        response += f"{i}. **{group['name']}**\n"
-        response += f"   📍 Şehirler: {cities}\n"
-        response += f"   📧 Email: `{group['email']}`\n\n"
+    response = "👥 **Tüm Gruplar:**\n\n"
+    for i, grup in enumerate(groups, 1):
+        response += f"{i}. **{grup['no']} - {grup['name']}**\n"
+        response += f"   📍 İller: {grup['iller']}\n"
+        response += f"   📧 Email: `{grup['email']}`\n\n"
         
     await message.answer(response)
 
