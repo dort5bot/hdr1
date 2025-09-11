@@ -448,6 +448,7 @@ async def cmd_testmail(message: Message):
     except Exception as e:
         await message.answer(f"❌ Test hatası: {str(e)}")
 
+# handlers/commands.py - testexcel komutunu düzeltelim
 @router.message(Command("testexcel"))
 async def cmd_testexcel(message: Message):
     """Excel işleme testi yapar"""
@@ -464,12 +465,13 @@ async def cmd_testexcel(message: Message):
             return
             
         response = "✅ **Excel İşleme Sonuçları:**\n\n"
-        for group_name, files in results.items():
+        for group_no, files in results.items():
             # Grup bilgisini bul
-            group_info = next((g for g in groups if g["name"] == group_name), None)
+            group_info = next((g for g in groups if g["no"] == group_no), None)
+            group_name = group_info["name"] if group_info else "Bilinmeyen"
             group_email = group_info["email"] if group_info else "Bilinmeyen"
             
-            response += f"📊 {group_name} ({group_email}): {len(files)} dosya\n"
+            response += f"📊 {group_no} - {group_name} ({group_email}): {len(files)} dosya\n"
             
             # Dosya isimlerini göster (ilk 3)
             for i, file_path in enumerate(files[:3]):
@@ -482,6 +484,7 @@ async def cmd_testexcel(message: Message):
         await message.answer(response)
         
     except Exception as e:
+        logger.error(f"Excel test hatası: {e}")
         await message.answer(f"❌ Excel test hatası: {str(e)}")
 
 # Handler loader compatibility
