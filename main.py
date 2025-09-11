@@ -39,7 +39,8 @@ async def on_startup():
 
     # Set webhook if using webhook mode
     if USE_WEBHOOK:
-        await bot.set_webhook(f"{WEBHOOK_URL}{WEBHOOK_PATH}")
+        #await bot.set_webhook(f"{WEBHOOK_URL}{WEBHOOK_PATH}")
+        await bot.set_webhook(f"{WEBHOOK_URL}{WEBHOOK_PATH}/{TELEGRAM_BOT}")
         logger.info("Webhook set successfully")
 
     # Send startup message to admins
