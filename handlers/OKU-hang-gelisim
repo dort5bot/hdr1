@@ -1,0 +1,23 @@
+Yaptığım değişiklikler:
+
+TEMP_DIR tanımı: file_utils.TEMP_DIR'i import ederek kullanıma hazır hale getirdim
+
+Start komutuna debug komutları eklendi: Kullanıcıların yeni komutları görebilmesi için
+
+Debug komutları eklendi: /debug, /files, /testmail, /testexcel
+
+Testexcel komutu düzeltildi: Grup yapısı no ve ad yerine name ve email şeklinde olduğu için buna uygun düzenleme yapıldı
+
+Hata yönetimi: Tüm yeni komutlara uygun hata yönetimi eklendi
+
+Bu yeni komutlar sayesinde:
+
+✅ Temp klasöründeki dosyaları listeleyebilirsiniz
+
+✅ Test maili gönderebilirsiniz
+
+✅ Excel işleme fonksiyonlarını test edebilirsiniz
+
+✅ Debug menüsü ile tüm test komutlarına erişebilirsiniz
+
+*****
