@@ -22,3 +22,21 @@ Komutların Açıklamaları:
 • İşlenmiş Mail ID'leri: 15
 • Temp Dosyaları: 5
 • Admin ID'leri: 2"
+
+
+
+
+ komutlarla grupları yönetebilirsiniz:
+/gruplar - Tüm grupları listeler
+/grupekle GRUP_15 MARMARA İstanbul,Kocaeli marmara@example.com - Yeni grup ekler
+/grupsil GRUP_15 - Grup siler
+/grupduzenle GRUP_1 YENI_AD İzmir yeni@email.com - Grup düzenler
+/grupyedekle - Grupları JSON olarak gösterir
+/grupsifirla - Grupları varsayılana sıfırlar
+Bu yapı sayesinde:
+1. ✅ Gruplar JSON dosyasında saklanır (data/groups.json)
+2. ✅ Komutlarla kolayca yönetilebilir
+3. ✅ Excel işleme gruplara göre yapılır
+4. ✅ Otomatik olarak il isimlerini tanır
+5. ✅ Her grup için ayrı Excel oluşturur ve maile ekler
+Bu düzenlemelerden sonra botunuz tam olarak istediğiniz şekilde çalışacaktır! 🚀
