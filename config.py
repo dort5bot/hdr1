@@ -28,21 +28,24 @@ DATA_DIR.mkdir(exist_ok=True)
 GROUPS_FILE = DATA_DIR / "groups.json"
 
 # Varsayılan gruplar (TUTARLI YAPI - "name" kullanıyoruz)
+# config.py - Grup illerini büyük harfe çevirelim
+# DEFAULT_GROUPS kısmını güncelleyelim:
+
 DEFAULT_GROUPS = [
-    {"no": "GRUP_1", "name": "ANTALYA", "iller": "Afyon,Aksaray,Ankara,Antalya,Burdur,Çankırı,Isparta,Karaman,Kayseri,Kırıkkale,Kırşehir,Konya,Uşak", "email": "dersdep@gmail.com"},
-    {"no": "GRUP_2", "name": "MERSİN", "iller": "Adana,Adıyaman,Batman,Bingöl,Bitlis,Diyarbakır,Elazığ,Gaziantep,Hakkâri,Hatay,Kahramanmaraş,Kilis,Malatya,Mardin,Mersin,Muş,Osmaniye,Siirt,Şanlıurfa,Şırnak", "email": "dersdep@gmail.com"},
-    {"no": "GRUP_3", "name": "İZMİR", "iller": "Afyon,Aydın,Burdur,Isparta,İzmir,ÇANAKKALE,Manisa,Muğla,Uşak", "email": "GRUP_3@gmail.com"},
-    {"no": "GRUP_4", "name": "BURSA", "iller": "Balıkesir,Bursa,Çanakkale,Düzce,Kocaeli,Sakarya,Tekirdağ,Yalova", "email": "GRUP_4@gmail.com"},
-    {"no": "GRUP_5", "name": "BALIKESİR", "iller": "BALIKESİR,ÇANAKKALE", "email": "GRUP_5@gmail.com"},
-    {"no": "GRUP_6", "name": "KARADENİZ", "iller": "Artvin,Bayburt,Çankırı,Erzincan,Erzurum,Giresun,Gümüşhane,Ordu,Rize,Samsun,Sinop,Sivas,Tokat,Trabzon", "email": "GRUP_6@gmail.com"},
-    {"no": "GRUP_7", "name": "ERZİNCAN", "iller": "Bingöl,Erzincan,Erzurum,Giresun,Gümüşhane,Kars,Ordu,Sivas,Şırnak,Tokat,Tunceli", "email": "GRUP_7@gmail.com"},
-    {"no": "GRUP_8", "name": "ESKİŞEHİR", "iller": "Afyon,Ankara,Bilecik,Eskişehir,Uşak", "email": "GRUP_8@gmail.com"},
-    {"no": "GRUP_9", "name": "KÜTAHYA", "iller": "Afyon,Ankara,Bilecik,Bozüyük,Bursa,Eskişehir,Kütahya,Uşak", "email": "GRUP_9@gmail.com"},
-    {"no": "GRUP_10", "name": "ÇORUM", "iller": "Amasya,Ankara,Çankırı,Çorum,Kastamonu,Kayseri,Kırıkkale,Kırşehir,Samsun,Tokat,Yozgat", "email": "GRUP_10@gmail.com"},
-    {"no": "GRUP_11", "name": "DENİZLİ", "iller": "Afyon,Aydın,Burdur,Denizli,Isparta,İzmir,Manisa,Muğla,Uşak", "email": "GRUP_11@gmail.com"},
-    {"no": "GRUP_12", "name": "AKHİSAR", "iller": "MANİSA", "email": "GRUP_12@gmail.com"},
-    {"no": "GRUP_13", "name": "DÜZCE", "iller": "Bolu,Düzce,Edirne,İstanbul,Karabük,Kırklareli,Kocaeli,Sakarya,Tekirdağ,Yalova,Zonguldak", "email": "GRUP_13@gmail.com"},
-    {"no": "GRUP_14", "name": "TUNCAY", "iller": "Aksaray,Ankara,Kahramanmaraş,Kırıkkale,Kırşehir", "email": "GRUP_14@gmail.com"}
+    {"no": "GRUP_1", "name": "ANTALYA", "iller": "AFYON,AKSARAY,ANKARA,ANTALYA,BURDUR,ÇANKIRI,ISPARTA,KARAMAN,KAYSERI,KIRIKKALE,KIRŞEHIR,KONYA,UŞAK", "email": "GRUP_1@gmail.com"},
+    {"no": "GRUP_2", "name": "MERSİN", "iller": "ADANA,ADIYAMAN,BATMAN,BINGÖL,BITLIS,DIYARBAKIR,ELAZIĞ,GAZIANTEP,HAKKARI,HATAY,KAHRAmanMARAS,KILIS,MALATYA,MARDIN,MERSIN,MUŞ,OSMANIYE,SIIRT,ŞANLIURFA,ŞIRNAK", "email": "GRUP_2@gmail.com"},
+    {"no": "GRUP_3", "name": "İZMİR", "iller": "AFYON,AYDIN,BURDUR,ISPARTA,İZMIR,ÇANAKKALE,MANISA,MUĞLA,UŞAK", "email": "GRUP_3@gmail.com"},
+    {"no": "GRUP_4", "name": "BURSA", "iller": "BALIKESIR,BURSA,ÇANAKKALE,DÜZCE,KOCAELI,SAKARYA,TEKIRDAĞ,YALOVA", "email": "GRUP_4@gmail.com"},
+    {"no": "GRUP_5", "name": "BALIKESİR", "iller": "BALIKESIR,ÇANAKKALE", "email": "GRUP_5@gmail.com"},
+    {"no": "GRUP_6", "name": "KARADENİZ", "iller": "ARTVIN,BAYBURT,ÇANKIRI,ERZINCAN,ERZURUM,GIRESUN,GÜMÜŞHANE,ORDU,RIZE,SAMSUN,SINOP,SIVAS,TOKAT,TRABZON", "email": "GRUP_6@gmail.com"},
+    {"no": "GRUP_7", "name": "ERZİNCAN", "iller": "BINGÖL,ERZINCAN,ERZURUM,GIRESUN,GÜMÜŞHANE,KARS,ORDU,SIVAS,ŞIRNAK,TOKAT,TUNCELI", "email": "GRUP_7@gmail.com"},
+    {"no": "GRUP_8", "name": "ESKİŞEHİR", "iller": "AFYON,ANKARA,BILECIK,ESKIŞEHIR,UŞAK", "email": "GRUP_8@gmail.com"},
+    {"no": "GRUP_9", "name": "KÜTAHYA", "iller": "AFYON,ANKARA,BILECIK,BOZÜYÜK,BURSA,ESKIŞEHIR,KÜTAHYA,UŞAK", "email": "GRUP_9@gmail.com"},
+    {"no": "GRUP_10", "name": "ÇORUM", "iller": "AMASYA,ANKARA,ÇANKIRI,ÇORUM,KASTAMONU,KAYSERI,KIRIKKALE,KIRŞEHIR,SAMSUN,TOKAT,YOZGAT", "email": "GRUP_10@gmail.com"},
+    {"no": "GRUP_11", "name": "DENİZLİ", "iller": "AFYON,AYDIN,BURDUR,DENIZLI,ISPARTA,İZMIR,MANISA,MUĞLA,UŞAK", "email": "GRUP_11@gmail.com"},
+    {"no": "GRUP_12", "name": "AKHİSAR", "iller": "MANISA", "email": "GRUP_12@gmail.com"},
+    {"no": "GRUP_13", "name": "DÜZCE", "iller": "BOLU,DÜZCE,EDIRNE,İSTANBUL,KARABÜK,KIRKLARELI,KOCAELI,SAKARYA,TEKIRDAĞ,YALOVA,ZONGULDAK", "email": "GRUP_13@gmail.com"},
+    {"no": "GRUP_14", "name": "TUNCAY", "iller": "AKSARAY,ANKARA,KAHRAmanMARAS,KIRIKKALE,KIRŞEHIR", "email": "GRUP_14@gmail.com"}
 ]
 
 # Grupları yükle
