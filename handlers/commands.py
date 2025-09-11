@@ -18,6 +18,9 @@ logger = logging.getLogger(__name__)
 # Bot başlangıç zamanı
 BOT_START_TIME = time.time()
 
+# TEMP_DIR tanımı (file_utils'den alıyoruz)
+TEMP_DIR = file_utils.TEMP_DIR
+
 @router.message(Command("start"))
 async def cmd_start(message: Message):
     if message.from_user.id not in ADMIN_IDS:
@@ -41,7 +44,12 @@ async def cmd_start(message: Message):
         "/stats - İstatistikler\n"
         "/health - Sistem durumu\n"
         "/ping - Yanıt süresi\n"
-        "/status - Detaylı durum"
+        "/status - Detaylı durum\n\n"
+        "🔧 **Debug Komutları:**\n"
+        "/debug - Debug menüsü\n"
+        "/files - Temp dosyalarını listele\n"
+        "/testmail - Test maili gönder\n"
+        "/testexcel - Excel işleme testi"
     )
 
 @router.message(Command("health"))
@@ -370,6 +378,111 @@ async def cmd_stats(message: Message):
         
     except Exception as e:
         await message.answer(f"❌ İstatistikler alınamadı: {str(e)}")
+
+@router.message(Command("debug"))
+async def cmd_debug(message: Message):
+    """Debug ve test komutları"""
+    if message.from_user.id not in ADMIN_IDS:
+        await message.answer("Bu botu kullanma yetkiniz yok.")
+        return
+        
+    debug_info = """
+🔧 **Debug Komutları:**
+    
+/files - Temp'deki dosyaları listeler
+/testmail - Test maili gönderir
+/testexcel - Excel işleme testi yapar
+/logs - Son logları gösterir
+"""
+    await message.answer(debug_info)
+
+@router.message(Command("files"))
+async def cmd_files(message: Message):
+    """Temp'deki dosyaları listeler"""
+    if message.from_user.id not in ADMIN_IDS:
+        await message.answer("Bu botu kullanma yetkiniz yok.")
+        return
+        
+    try:
+        files = os.listdir(TEMP_DIR)
+        if not files:
+            await message.answer("❌ Temp klasörü boş.")
+            return
+            
+        response = "📁 **Temp Dosyaları:**\n\n"
+        for i, file in enumerate(files, 1):
+            file_path = os.path.join(TEMP_DIR, file)
+            size = os.path.getsize(file_path) / 1024  # KB cinsinden
+            response += f"{i}. {file} ({size:.1f} KB)\n"
+            
+        await message.answer(response)
+    except Exception as e:
+        await message.answer(f"❌ Hata: {str(e)}")
+
+@router.message(Command("testmail"))
+async def cmd_testmail(message: Message):
+    """Test maili gönderir"""
+    if message.from_user.id not in ADMIN_IDS:
+        await message.answer("Bu botu kullanma yetkiniz yok.")
+        return
+        
+    try:
+        # İlk gruba test maili gönder
+        if not groups:
+            await message.answer("❌ Test için grup bulunamadı.")
+            return
+            
+        test_group = groups[0]
+        success = await email_utils.send_email(
+            test_group["email"],
+            "HIDIR Bot Test Maili",
+            "Bu bir test mailidir. Bot çalışıyor!",
+            None  # Ek dosya yok
+        )
+        
+        if success:
+            await message.answer(f"✅ Test maili gönderildi: {test_group['email']}")
+        else:
+            await message.answer("❌ Test maili gönderilemedi.")
+            
+    except Exception as e:
+        await message.answer(f"❌ Test hatası: {str(e)}")
+
+@router.message(Command("testexcel"))
+async def cmd_testexcel(message: Message):
+    """Excel işleme testi yapar"""
+    if message.from_user.id not in ADMIN_IDS:
+        await message.answer("Bu botu kullanma yetkiniz yok.")
+        return
+        
+    try:
+        # Excel işleme testi
+        results = await excel_processor.process_excel_files()
+        
+        if not results:
+            await message.answer("❌ İşlenecek Excel bulunamadı veya gruplandırma yapılamadı.")
+            return
+            
+        response = "✅ **Excel İşleme Sonuçları:**\n\n"
+        for group_name, files in results.items():
+            # Grup bilgisini bul
+            group_info = next((g for g in groups if g["name"] == group_name), None)
+            group_email = group_info["email"] if group_info else "Bilinmeyen"
+            
+            response += f"📊 {group_name} ({group_email}): {len(files)} dosya\n"
+            
+            # Dosya isimlerini göster (ilk 3)
+            for i, file_path in enumerate(files[:3]):
+                file_name = os.path.basename(file_path)
+                response += f"   {i+1}. {file_name}\n"
+            if len(files) > 3:
+                response += f"   ... ve {len(files)-3} dosya daha\n"
+            response += "\n"
+        
+        await message.answer(response)
+        
+    except Exception as e:
+        await message.answer(f"❌ Excel test hatası: {str(e)}")
 
 # Handler loader compatibility
 async def register_handlers(router_instance: Router):
