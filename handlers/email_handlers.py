@@ -32,6 +32,7 @@ async def cmd_checkmail(message: Message):
 # process komutunu güncelleyin:
 # handlers/email_handlers.py - process komutunu düzeltelim
 # handlers/email_handlers.py - process komutunu güncelleyelim
+# handlers/email_handlers.py - process komutuna debug ekleyelim
 @router.message(Command("process"))
 async def cmd_process(message: Message):
     """Excel dosyalarını işleme komutu"""
@@ -43,7 +44,9 @@ async def cmd_process(message: Message):
     
     try:
         # Process Excel files
+        logger.info("🔄 process_excel_files() çağrılıyor...")
         group_results = await process_excel_files()
+        logger.info(f"✅ process_excel_files() sonuç: {group_results}")
         
         if not group_results:
             await processing_msg.edit_text("❌ İşlenecek veri bulunamadı.")
@@ -54,20 +57,27 @@ async def cmd_process(message: Message):
         failed_groups = []
         
         for group_no, filepaths in group_results.items():
+            logger.info(f"🔄 Processing group {group_no} with {len(filepaths)} files")
+            
             # Find group email
             group_info = next((g for g in groups if g["no"] == group_no), None)
             if not group_info or not group_info.get("email"):
-                failed_groups.append(f"{group_no} (email yok)")
+                failed_msg = f"{group_no} (email yok)"
+                logger.warning(failed_msg)
+                failed_groups.append(failed_msg)
                 continue
                 
-            group_email = group_info["email"]
-            group_name = group_info["name"]
-            
             # Create group Excel
+            logger.info(f"🔄 create_group_excel çağrılıyor...")
             group_filepath = await create_group_excel(group_no, filepaths)
+            
             if not group_filepath:
-                failed_groups.append(f"{group_no} (Excel oluşturulamadı)")
+                failed_msg = f"{group_no} (Excel oluşturulamadı)"
+                logger.error(failed_msg)
+                failed_groups.append(failed_msg)
                 continue
+            
+            # ... email gönderme kodu 
             
             # Send email with attachment
             now = datetime.datetime.now()
@@ -99,7 +109,7 @@ async def cmd_process(message: Message):
         await processing_msg.edit_text(response)
             
     except Exception as e:
-        logger.error(f"Process command error: {e}")
+        logger.error(f"Process command error: {e}", exc_info=True)
         await processing_msg.edit_text(f"❌ İşlem sırasında hata oluştu: {str(e)}")
         
 
