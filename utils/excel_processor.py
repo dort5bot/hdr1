@@ -157,11 +157,12 @@ def process_rows_advanced(df, city_column, results, filename):
         logger.warning(f"Eşleşmeyen şehirler: {sorted(unmatched_cities)}")
 
 #create_group_excel Fonksiyonunu Düzeltelim:
+# utils/excel_processor.py - create_group_excel fonksiyonunu GÜNCELLEYELİM
 async def create_group_excel(group_no: str, filepaths: list) -> str:
     """Create a combined Excel file for a group"""
+    logger.info(f"🔄 create_group_excel CALLED for {group_no} with {len(filepaths)} files")
+    
     try:
-        logger.info(f"Creating Excel for group {group_no} with files: {filepaths}")
-        
         # Grup bilgilerini bul
         grup_info = None
         for grup in groups:
@@ -170,34 +171,36 @@ async def create_group_excel(group_no: str, filepaths: list) -> str:
                 break
         
         if not grup_info:
-            logger.error(f"Group {group_no} not found in groups list")
+            logger.error(f"❌ Group {group_no} not found in groups")
             return None
             
+        logger.info(f"📊 Group info found: {grup_info['name']}")
+        
         # Combine all data for this group
         all_dfs = []
         for filepath in filepaths:
             try:
-                logger.info(f"Reading file: {filepath}")
+                logger.info(f"📖 Reading file: {filepath}")
                 df = pd.read_excel(filepath)
-                logger.info(f"File {os.path.basename(filepath)} shape: {df.shape}")
+                logger.info(f"✅ Loaded: {os.path.basename(filepath)} - Shape: {df.shape}")
                 all_dfs.append(df)
             except Exception as e:
-                logger.error(f"Error reading {filepath}: {e}")
+                logger.error(f"❌ Error reading {filepath}: {e}")
                 return None
         
         if not all_dfs:
-            logger.error("No dataframes to combine")
+            logger.error("❌ No dataframes to combine")
             return None
             
         # Combine dataframes
         try:
             combined_df = pd.concat(all_dfs, ignore_index=True)
-            logger.info(f"Combined dataframe shape: {combined_df.shape}")
+            logger.info(f"✅ Combined dataframe shape: {combined_df.shape}")
         except Exception as e:
-            logger.error(f"Error concatenating dataframes: {e}")
+            logger.error(f"❌ Error concatenating: {e}")
             return None
         
-        # Generate filename with timestamp and group info
+        # Generate filename
         now = datetime.datetime.now()
         timestamp = now.strftime("%Y%m%d_%H%M%S")
         filename = f"{group_no}_{grup_info['name']}_{timestamp}.xlsx"
@@ -206,20 +209,12 @@ async def create_group_excel(group_no: str, filepaths: list) -> str:
         # Save the combined Excel
         try:
             combined_df.to_excel(filepath, index=False, engine='openpyxl')
-            logger.info(f"Group Excel successfully created: {filepath}")
-            logger.info(f"File size: {os.path.getsize(filepath)} bytes")
+            logger.info(f"✅ Excel saved successfully: {filename}")
             return filepath
         except Exception as e:
-            logger.error(f"Error saving Excel file: {e}")
-            # openpyxl yoksa xlsxwriter dene
-            try:
-                combined_df.to_excel(filepath, index=False, engine='xlsxwriter')
-                logger.info(f"Group Excel created with xlsxwriter: {filepath}")
-                return filepath
-            except Exception as e2:
-                logger.error(f"Error with xlsxwriter too: {e2}")
-                return None
+            logger.error(f"❌ Error saving Excel: {e}")
+            return None
         
     except Exception as e:
-        logger.error(f"Error creating group Excel for {group_no}: {e}")
+        logger.error(f"❌ Unexpected error in create_group_excel: {e}")
         return None
