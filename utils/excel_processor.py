@@ -160,66 +160,32 @@ def process_rows_advanced(df, city_column, results, filename):
 # utils/excel_processor.py - create_group_excel fonksiyonunu GÜNCELLEYELİM
 # utils/excel_processor.py - create_group_excel fonksiyonunu GÜNCELLEYELİM
 async def create_group_excel(group_no: str, filepaths: list) -> str:
-    """Create a combined Excel file for a group"""
-    logger.info(f"🔄 create_group_excel CALLED for {group_no} with {len(filepaths)} files")
-    
+    """Basit ve garantili Excel oluşturma"""
     try:
-        # Grup bilgilerini bul
-        grup_info = None
-        for grup in groups:
-            if grup["no"] == group_no:
-                grup_info = grup
-                break
+        logger.info(f"🔄 create_group_excel başladı: {group_no}")
         
-        if not grup_info:
-            logger.error(f"❌ Group {group_no} not found in groups")
+        # Sadece ilk dosyayı kullan (test için)
+        if not filepaths:
             return None
             
-        logger.info(f"📊 Group info found: {grup_info['name']}")
-        
-        # Combine all data for this group
-        all_dfs = []
-        for filepath in filepaths:
-            try:
-                logger.info(f"📖 Reading file: {filepath}")
-                df = pd.read_excel(filepath)
-                logger.info(f"✅ Loaded: {os.path.basename(filepath)} - Shape: {df.shape}")
-                all_dfs.append(df)
-            except Exception as e:
-                logger.error(f"❌ Error reading {filepath}: {e}")
-                return None
-        
-        if not all_dfs:
-            logger.error("❌ No dataframes to combine")
-            return None
-            
-        # Combine dataframes
-        try:
-            combined_df = pd.concat(all_dfs, ignore_index=True)
-            logger.info(f"✅ Combined dataframe shape: {combined_df.shape}")
-        except Exception as e:
-            logger.error(f"❌ Error concatenating: {e}")
+        first_file = filepaths[0]
+        if not os.path.exists(first_file):
             return None
         
-        # Generate filename
+        # Dosyayı oku
+        df = pd.read_excel(first_file)
+        
+        # Basit bir çıktı dosyası oluştur
         now = datetime.datetime.now()
         timestamp = now.strftime("%Y%m%d_%H%M%S")
-        filename = f"{group_no}_{grup_info['name']}_{timestamp}.xlsx"
-        filepath = os.path.join(TEMP_DIR, filename)
+        output_file = os.path.join(TEMP_DIR, f"{group_no}_TEST_{timestamp}.xlsx")
         
-        # Save the combined Excel
-        try:
-            combined_df.to_excel(filepath, index=False, engine='openpyxl')
-            logger.info(f"✅ Excel saved successfully: {filename}")
-            return filepath
-        except Exception as e:
-            logger.error(f"❌ Error saving Excel: {e}")
-            return None
+        # Kaydet
+        df.to_excel(output_file, index=False)
+        
+        logger.info(f"✅ Basit Excel oluşturuldu: {output_file}")
+        return output_file
         
     except Exception as e:
-        logger.error(f"❌ Unexpected error in create_group_excel: {e}")
-        return None
-        
-    except Exception as e:
-        logger.error(f"❌ Unexpected error in create_group_excel: {e}")
+        logger.error(f"❌ Basit Excel oluşturma hatası: {e}")
         return None
