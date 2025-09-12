@@ -158,6 +158,7 @@ def process_rows_advanced(df, city_column, results, filename):
 
 #create_group_excel Fonksiyonunu Düzeltelim:
 # utils/excel_processor.py - create_group_excel fonksiyonunu GÜNCELLEYELİM
+# utils/excel_processor.py - create_group_excel fonksiyonunu GÜNCELLEYELİM
 async def create_group_excel(group_no: str, filepaths: list) -> str:
     """Create a combined Excel file for a group"""
     logger.info(f"🔄 create_group_excel CALLED for {group_no} with {len(filepaths)} files")
@@ -214,6 +215,10 @@ async def create_group_excel(group_no: str, filepaths: list) -> str:
         except Exception as e:
             logger.error(f"❌ Error saving Excel: {e}")
             return None
+        
+    except Exception as e:
+        logger.error(f"❌ Unexpected error in create_group_excel: {e}")
+        return None
         
     except Exception as e:
         logger.error(f"❌ Unexpected error in create_group_excel: {e}")
